@@ -6,7 +6,7 @@
 
 package declarative
 
-import "github.com/miu200521358/walk"
+import "github.com/miu200521358/walk/pkg/walk"
 
 type MainWindow struct {
 	// Window

@@ -9,7 +9,7 @@ package declarative
 import (
 	"path/filepath"
 
-	"github.com/miu200521358/walk"
+	"github.com/miu200521358/walk/pkg/walk"
 )
 
 func tr(source string, context ...string) string {

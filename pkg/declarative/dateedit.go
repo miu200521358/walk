@@ -11,7 +11,7 @@ import (
 )
 
 import (
-	"github.com/miu200521358/walk"
+	"github.com/miu200521358/walk/pkg/walk"
 )
 
 type DateEdit struct {

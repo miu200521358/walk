@@ -5,8 +5,8 @@
 package main
 
 import (
-	"github.com/miu200521358/walk"
-	. "github.com/miu200521358/walk/declarative"
+	"github.com/miu200521358/walk/pkg/walk"
+	. "github.com/miu200521358/walk/pkg/declarative"
 )
 
 func main() {
