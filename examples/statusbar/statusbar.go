@@ -10,8 +10,8 @@ package main
 import (
 	"log"
 
-	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
+	"github.com/miu200521358/walk"
+	. "github.com/miu200521358/walk/declarative"
 )
 
 func main() {
