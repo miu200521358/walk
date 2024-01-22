@@ -9,10 +9,9 @@ import (
 	"log"
 	"os"
 	"strings"
-)
 
-import (
 	"github.com/miu200521358/walk/pkg/walk"
+
 	. "github.com/miu200521358/walk/pkg/declarative"
 )
 
@@ -29,8 +28,8 @@ func main() {
 			HSplitter{
 				Children: []Widget{
 					ListBox{
-						AssignTo: &mw.lb,
-						Model:    mw.model,
+						AssignTo:              &mw.lb,
+						Model:                 mw.model,
 						OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
 						OnItemActivated:       mw.lb_ItemActivated,
 					},

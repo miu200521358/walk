@@ -2,13 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build windows
 // +build windows
 
 package declarative
 
 import (
-	"github.com/miu200521358/walk/pkg/walk"
 	"github.com/miu200521358/win"
+
+	"github.com/miu200521358/walk/pkg/walk"
 )
 
 type TextEdit struct {

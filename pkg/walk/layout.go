@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build windows
 // +build windows
 
 package walk
@@ -10,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/miu200521358/win"
+
 )
 
 func createLayoutItemForWidget(widget Widget) LayoutItem {

@@ -6,9 +6,7 @@ package main
 
 import (
 	"fmt"
-)
 
-import (
 	. "github.com/miu200521358/walk/pkg/declarative"
 )
 
