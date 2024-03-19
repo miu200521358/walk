@@ -809,7 +809,7 @@ func writeMenuInitialization(buf *bytes.Buffer, menu *Widget, realActions map[st
 			buf.WriteString(`); err != nil {
 				return err
 			}
-			
+
 			`)
 		} else {
 			for _, submenu := range menu.Widget {
@@ -849,7 +849,7 @@ func writeMenuInitialization(buf *bytes.Buffer, menu *Widget, realActions map[st
 						buf.WriteString(`); err != nil {
 							return err
 						}
-						
+
 						`)
 						break
 					}
@@ -896,11 +896,11 @@ func generateUICode(buf *bytes.Buffer, ui *UI) error {
 		// DO NOT EDIT OR YOUR MODIFICATIONS WILL BE LOST!
 
 		package main
-		
+
 		import (
 			"github.com/miu200521358/walk/pkg/walk"
 		)
-		
+
 		`)
 
 	// Embed the corresponding Walk type.
@@ -977,19 +977,19 @@ func generateUICode(buf *bytes.Buffer, ui *UI) error {
 	buf.WriteString(fmt.Sprintf(`; err != nil {
 			return err
 			}
-			
+
 			succeeded := false
 			defer func(){
 				if !succeeded {
 					w.Dispose()
 				}
 			}()
-			
+
 			var font *walk.Font
 			if font == nil {
 				font = nil
 			}
-			
+
 			w.SetName("%s")
 			`,
 		ui.Widget.Name))
@@ -1057,7 +1057,7 @@ func generateUICode(buf *bytes.Buffer, ui *UI) error {
 	// end func
 	buf.WriteString(`
 		succeeded = true
-		
+
 		return nil
 		}`)
 
@@ -1068,11 +1068,11 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 	// Comment, package decl, imports
 	buf.WriteString(
 		`package main
-		
+
 		import (
 			"github.com/miu200521358/walk/pkg/walk"
 		)
-		
+
 		`)
 
 	// Embed the corresponding Walk type.
@@ -1099,7 +1099,7 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 	buf.WriteString(strings.ToLower(ui.Class[:1]) + ui.Class[1:])
 	buf.WriteString(`UI
 	}
-	
+
 	`)
 
 	switch embeddedType {
@@ -1114,11 +1114,11 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 			return 0, err
 		}
 		defer mw.Dispose()
-		
+
 		// TODO: Do further required setup, e.g. for event handling, here.
-		
+
 		mw.Show()
-		
+
 		return mw.Run(), nil
 		}
 		`)
@@ -1133,7 +1133,7 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 		if err := dlg.init(owner); err != nil {
 			return 0, err
 		}
-		
+
 		`)
 
 		if b := findWidget(&ui.Widget, "QPushButton", []string{"accept", "ok"}); b != nil {
@@ -1142,13 +1142,13 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 			buf.WriteString(`); err != nil {
 			return 0, err
 			}
-			
+
 			dlg.ui.`)
 			buf.WriteString(b.Name)
 			buf.WriteString(`.Clicked().Attach(func(){
 			dlg.Accept()
 			})
-			
+
 			`)
 		}
 
@@ -1158,18 +1158,18 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 			buf.WriteString(`); err != nil {
 			return 0, err
 			}
-			
+
 			dlg.ui.`)
 			buf.WriteString(b.Name)
 			buf.WriteString(`.Clicked().Attach(func(){
 			dlg.Cancel()
 			})
-			
+
 			`)
 		}
 
 		buf.WriteString(`// TODO: Do further required setup, e.g. for event handling, here.
-		
+
 		return dlg.Run(), nil
 		}
 		`)
@@ -1186,9 +1186,9 @@ func generateLogicCode(buf *bytes.Buffer, ui *UI) error {
 		if err := c.init(parent); err != nil {
 			return nil, err
 		}
-		
+
 		// TODO: Do further required setup, e.g. for event handling, here.
-		
+
 		return c, nil
 		}
 		`)

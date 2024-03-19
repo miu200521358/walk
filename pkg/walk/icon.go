@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build windows
 // +build windows
 
 package walk
@@ -12,9 +13,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"golang.org/x/sys/windows"
-
 	"github.com/miu200521358/win"
+	"golang.org/x/sys/windows"
 )
 
 // Icon is a bitmap that supports transparency and combining multiple

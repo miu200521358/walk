@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/miu200521358/win"
-
 )
 
 func createLayoutItemForWidget(widget Widget) LayoutItem {

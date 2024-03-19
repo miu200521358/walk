@@ -9,8 +9,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/miu200521358/walk/pkg/walk"
 	. "github.com/miu200521358/walk/pkg/declarative"
+	"github.com/miu200521358/walk/pkg/walk"
 )
 
 type MainWin struct {
