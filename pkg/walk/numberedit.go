@@ -509,7 +509,7 @@ func newNumberLineEdit(parent Widget) (*numberLineEdit, error) {
 	}
 
 	var err error
-	if nle.LineEdit, err = newLineEdit(parent); err != nil {
+	if nle.LineEdit, err = newLineEdit(parent, win.WS_EX_CLIENTEDGE); err != nil {
 		return nil, err
 	}
 

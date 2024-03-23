@@ -272,6 +272,8 @@ func (s *static) WndProc(hwnd win.HWND, msg uint32, wp, lp uintptr) uintptr {
 		}
 
 		s.updateStaticBounds()
+	case win.WM_MOUSEACTIVATE:
+		s.publishMouseEvent(&s.mouseDownPublisher, msg, wp, lp)
 	}
 
 	return s.WidgetBase.WndProc(hwnd, msg, wp, lp)

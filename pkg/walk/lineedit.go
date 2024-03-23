@@ -37,7 +37,7 @@ type LineEdit struct {
 	textColor                Color
 }
 
-func newLineEdit(parent Window) (*LineEdit, error) {
+func newLineEdit(parent Window, exStyle uint32) (*LineEdit, error) {
 	le := new(LineEdit)
 
 	if err := InitWindow(
@@ -45,7 +45,7 @@ func newLineEdit(parent Window) (*LineEdit, error) {
 		parent,
 		"EDIT",
 		win.WS_CHILD|win.WS_TABSTOP|win.WS_VISIBLE|win.ES_AUTOHSCROLL,
-		win.WS_EX_CLIENTEDGE); err != nil {
+		exStyle); err != nil {
 		return nil, err
 	}
 
@@ -73,12 +73,66 @@ func newLineEdit(parent Window) (*LineEdit, error) {
 	return le, nil
 }
 
+func NewLineEditStaticEdge(parent Container) (*LineEdit, error) {
+	if parent == nil {
+		return nil, newError("parent cannot be nil")
+	}
+
+	le, err := newLineEdit(parent, win.WS_EX_STATICEDGE)
+	if err != nil {
+		return nil, err
+	}
+
+	var succeeded bool
+	defer func() {
+		if !succeeded {
+			le.Dispose()
+		}
+	}()
+
+	le.parent = parent
+	if err = parent.Children().Add(le); err != nil {
+		return nil, err
+	}
+
+	succeeded = true
+
+	return le, nil
+}
+
+func NewLineEditNoEdge(parent Container) (*LineEdit, error) {
+	if parent == nil {
+		return nil, newError("parent cannot be nil")
+	}
+
+	le, err := newLineEdit(parent, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var succeeded bool
+	defer func() {
+		if !succeeded {
+			le.Dispose()
+		}
+	}()
+
+	le.parent = parent
+	if err = parent.Children().Add(le); err != nil {
+		return nil, err
+	}
+
+	succeeded = true
+
+	return le, nil
+}
+
 func NewLineEdit(parent Container) (*LineEdit, error) {
 	if parent == nil {
 		return nil, newError("parent cannot be nil")
 	}
 
-	le, err := newLineEdit(parent)
+	le, err := newLineEdit(parent, win.WS_EX_CLIENTEDGE)
 	if err != nil {
 		return nil, err
 	}
