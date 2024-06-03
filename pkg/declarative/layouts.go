@@ -57,7 +57,7 @@ func (s Size) toW() walk.Size {
 
 func setLayoutMargins(layout walk.Layout, margins Margins, marginsZero bool) error {
 	if !marginsZero && margins.isZero() {
-		margins = Margins{9, 9, 9, 9}
+		margins = Margins{3, 3, 3, 3}
 	}
 
 	return layout.SetMargins(margins.toW())

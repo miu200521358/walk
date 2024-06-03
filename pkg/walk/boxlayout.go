@@ -32,8 +32,8 @@ type BoxLayout struct {
 func newBoxLayout(orientation Orientation) *BoxLayout {
 	l := &BoxLayout{
 		LayoutBase: LayoutBase{
-			margins96dpi: Margins{9, 9, 9, 9},
-			spacing96dpi: 6,
+			margins96dpi: Margins{3, 3, 3, 3},
+			spacing96dpi: 3,
 		},
 		orientation:        orientation,
 		hwnd2StretchFactor: make(map[win.HWND]int),
