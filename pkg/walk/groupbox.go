@@ -321,11 +321,11 @@ func (gb *GroupBox) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 			hwndSrc := win.GetDlgItem(gb.hWnd, int32(win.LOWORD(uint32(wParam))))
 
 			if window := windowFromHandle(hwndSrc); window != nil {
-				window.WndProc(hwnd, msg, wParam, lParam)
+				_ = window.WndProc(hwnd, msg, wParam, lParam)
 			}
 
 		case win.WM_NOTIFY:
-			gb.composite.WndProc(hwnd, msg, wParam, lParam)
+			_ = gb.composite.WndProc(hwnd, msg, wParam, lParam)
 
 		case win.WM_SETTEXT:
 			gb.titleChangedPublisher.Publish()
