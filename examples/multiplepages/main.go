@@ -6,16 +6,14 @@ package main
 
 import (
 	"bytes"
+)
 
+import (
 	. "github.com/miu200521358/walk/pkg/declarative"
 	"github.com/miu200521358/walk/pkg/walk"
-	"github.com/pkg/profile"
 )
 
 func main() {
-	defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
-	// defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
-
 	walk.Resources.SetRootDirPath("../img")
 
 	mw := new(AppMainWindow)
