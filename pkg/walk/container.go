@@ -343,7 +343,7 @@ func (cb *ContainerBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintp
 					break
 				}
 
-				_ = window.WndProc(hwnd, msg, wParam, lParam)
+				window.WndProc(hwnd, msg, wParam, lParam)
 				return 0
 			}
 		}
