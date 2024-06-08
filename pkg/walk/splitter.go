@@ -26,7 +26,7 @@ func init() {
 		MustRegisterWindowClass(splitterWindowClass)
 
 		splitterHandleDraggingBrush, _ = NewSolidColorBrush(Color(win.GetSysColor(win.COLOR_BTNSHADOW)))
-		splitterHandleDraggingBrush.wb2info = map[win.HWND]*windowBrushInfo{}
+		splitterHandleDraggingBrush.wb2info = map[*WindowBase]*windowBrushInfo{nil: nil}
 	})
 }
 
