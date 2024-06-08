@@ -205,7 +205,7 @@ func (sv *ScrollView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr)
 			return 0
 
 		case win.WM_COMMAND, win.WM_NOTIFY:
-			_ = sv.composite.WndProc(hwnd, msg, wParam, lParam)
+			sv.composite.WndProc(hwnd, msg, wParam, lParam)
 
 		case win.WM_WINDOWPOSCHANGED:
 			wp := (*win.WINDOWPOS)(unsafe.Pointer(lParam))
