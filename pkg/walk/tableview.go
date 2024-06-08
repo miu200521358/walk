@@ -1928,7 +1928,7 @@ func tableViewNormalLVWndProc(hwnd win.HWND, msg uint32, wp, lp uintptr) uintptr
 
 	case win.WM_KILLFOCUS:
 		win.SendMessage(tv.hwndFrozenLV, msg, wp, lp)
-		tv.WndProc(tv.hWnd, msg, wp, lp)
+		_ = tv.WndProc(tv.hWnd, msg, wp, lp)
 		tv.maybePublishFocusChanged(hwnd, msg, wp)
 	}
 

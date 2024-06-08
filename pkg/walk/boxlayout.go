@@ -105,7 +105,7 @@ func (l *BoxLayout) SetStretchFactor(widget Widget, factor int) error {
 
 func (l *BoxLayout) CreateLayoutItem(ctx *LayoutContext) ContainerLayoutItem {
 	li := &boxLayoutItem{
-		size2MinSize:       make(map[Size]Size),
+		size2MinSize:       make(map[Size]struct{}),
 		orientation:        l.orientation,
 		hwnd2StretchFactor: make(map[win.HWND]int),
 	}
@@ -161,7 +161,7 @@ func (l boxLayoutItemInfoList) Swap(i, j int) {
 type boxLayoutItem struct {
 	ContainerLayoutItemBase
 	mutex              sync.Mutex
-	size2MinSize       map[Size]Size // in native pixels
+	size2MinSize       map[Size]struct{} // in native pixels
 	orientation        Orientation
 	hwnd2StretchFactor map[win.HWND]int
 }
@@ -186,8 +186,8 @@ func (li *boxLayoutItem) MinSizeForSize(size Size) Size {
 	li.mutex.Lock()
 	defer li.mutex.Unlock()
 
-	if min, ok := li.size2MinSize[size]; ok {
-		return min
+	if _, ok := li.size2MinSize[size]; ok {
+		return size
 	}
 
 	bounds := Rectangle{Width: size.Width, Height: size.Height}
@@ -229,7 +229,8 @@ func (li *boxLayoutItem) MinSizeForSize(size Size) Size {
 	}
 
 	if s.Width > 0 && s.Height > 0 {
-		li.size2MinSize[size] = s
+		delete(li.size2MinSize, size)
+		li.size2MinSize[s] = struct{}{}
 	}
 
 	return s
@@ -280,16 +281,46 @@ func boxLayoutItems(container ContainerLayoutItem, items []LayoutItem, orientati
 	var greedySpacerCount int
 	var stretchFactorsTotal [3]int
 	stretchFactors := make([]int, len(items))
+	defer func() {
+		stretchFactors = nil
+	}()
 	var minSizesRemaining int
 	minSizes := make([]int, len(items))
+	defer func() {
+		minSizes = nil
+	}()
 	maxSizes := make([]int, len(items))
+	defer func() {
+		maxSizes = nil
+	}()
 	sizes := make([]int, len(items))
+	defer func() {
+		sizes = nil
+	}()
 	prefSizes2 := make([]int, len(items))
+	defer func() {
+		prefSizes2 = nil
+	}()
 	var shrinkableAmount1Total int
 	shrinkableAmount1 := make([]int, len(items))
+	defer func() {
+		shrinkableAmount1 = nil
+	}()
 	shrinkable2 := make([]bool, len(items))
+	defer func() {
+		shrinkable2 = nil
+	}()
 	growable2 := make([]bool, len(items))
+	defer func() {
+		growable2 = nil
+	}()
 	sortedItemInfo := boxLayoutItemInfoList(make([]boxLayoutItemInfo, len(items)))
+	defer func() {
+		for i := range sortedItemInfo {
+			sortedItemInfo[i] = boxLayoutItemInfo{}
+		}
+		sortedItemInfo = nil
+	}()
 
 	for i, item := range items {
 		sf := hwnd2StretchFactor[item.Handle()]

@@ -82,7 +82,7 @@ type windowBrushInfo struct {
 
 type brushBase struct {
 	hBrush  win.HBRUSH
-	wb2info map[*WindowBase]*windowBrushInfo
+	wb2info map[*win.HWND]*windowBrushInfo
 }
 
 func (bb *brushBase) Dispose() {
@@ -103,10 +103,10 @@ func (bb *brushBase) attachWindow(wb *WindowBase) {
 	}
 
 	if bb.wb2info == nil {
-		bb.wb2info = make(map[*WindowBase]*windowBrushInfo)
+		bb.wb2info = make(map[*win.HWND]*windowBrushInfo)
 	}
 
-	bb.wb2info[wb] = nil
+	bb.wb2info[&wb.hWnd] = nil
 }
 
 func (bb *brushBase) detachWindow(wb *WindowBase) {
@@ -114,7 +114,7 @@ func (bb *brushBase) detachWindow(wb *WindowBase) {
 		return
 	}
 
-	delete(bb.wb2info, wb)
+	delete(bb.wb2info, &wb.hWnd)
 
 	if len(bb.wb2info) == 0 {
 		bb.Dispose()
@@ -504,12 +504,12 @@ func (b *GradientBrush) attachWindow(wb *WindowBase) {
 
 	update()
 
-	b.wb2info[wb] = info
+	b.wb2info[&wb.hWnd] = info
 }
 
 func (b *GradientBrush) detachWindow(wb *WindowBase) {
 	if !b.absolute {
-		if info, ok := b.wb2info[wb]; ok {
+		if info, ok := b.wb2info[&wb.hWnd]; ok {
 			if info.Delegate != nil {
 				info.Delegate.bitmap.Dispose()
 				info.Delegate.Dispose()
@@ -527,7 +527,7 @@ func (b *GradientBrush) delegateForWindow(wb *WindowBase) Brush {
 		return b.mainDelegate
 	}
 
-	if info, ok := b.wb2info[wb]; ok && info.Delegate != nil {
+	if info, ok := b.wb2info[&wb.hWnd]; ok && info.Delegate != nil {
 		return info.Delegate
 	}
 
