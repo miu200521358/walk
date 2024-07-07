@@ -735,6 +735,10 @@ func (nle *numberLineEdit) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uin
 				}
 			}
 
+			// 必ず最後に追加する
+			start = len(text)
+			end = len(text)
+
 			nle.processChar(text, start, end, 0, char)
 			return 0
 
