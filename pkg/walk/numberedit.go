@@ -153,6 +153,24 @@ func (ne *NumberEdit) applyFont(font *Font) {
 	ne.edit.applyFont(font)
 }
 
+func (ne *NumberEdit) SetEnabled(enabled bool) {
+	ne.WidgetBase.SetEnabled(enabled)
+
+	if !enabled {
+		bg, err := NewSystemColorBrush(SysColor3DFace)
+		if err != nil {
+			return
+		}
+		ne.SetBackground(bg)
+	} else {
+		bg, err := NewSolidColorBrush(RGB(255, 255, 255))
+		if err != nil {
+			return
+		}
+		ne.SetBackground(bg)
+	}
+}
+
 // Decimals returns the number of decimal places in the NumberEdit.
 func (ne *NumberEdit) Decimals() int {
 	return ne.edit.decimals

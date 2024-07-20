@@ -74,6 +74,24 @@ func (te *TextEdit) applyFont(font *Font) {
 	te.updateMargins()
 }
 
+func (te *TextEdit) SetEnabled(enabled bool) {
+	te.WidgetBase.SetEnabled(enabled)
+
+	if !enabled {
+		bg, err := NewSystemColorBrush(SysColor3DFace)
+		if err != nil {
+			return
+		}
+		te.SetBackground(bg)
+	} else {
+		bg, err := NewSolidColorBrush(RGB(255, 255, 255))
+		if err != nil {
+			return
+		}
+		te.SetBackground(bg)
+	}
+}
+
 func (te *TextEdit) updateMargins() {
 	// 56 works at least from 96 to 192 DPI, so until a better solution comes up, this is it.
 	defaultSize := te.dialogBaseUnitsToPixels(Size{56, 12})
