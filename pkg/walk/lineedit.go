@@ -154,6 +154,24 @@ func NewLineEdit(parent Container) (*LineEdit, error) {
 	return le, nil
 }
 
+func (le *LineEdit) SetEnabled(enabled bool) {
+	le.WidgetBase.SetEnabled(enabled)
+
+	if !enabled {
+		bg, err := NewSystemColorBrush(SysColor3DFace)
+		if err != nil {
+			return
+		}
+		le.SetBackground(bg)
+	} else {
+		bg, err := NewSolidColorBrush(RGB(255, 255, 255))
+		if err != nil {
+			return
+		}
+		le.SetBackground(bg)
+	}
+}
+
 func (le *LineEdit) CueBanner() string {
 	buf := make([]uint16, 128)
 	if win.FALSE == le.SendMessage(win.EM_GETCUEBANNER, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf))) {
