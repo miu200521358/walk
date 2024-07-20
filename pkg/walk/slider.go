@@ -97,6 +97,10 @@ func (sl *Slider) SetValue(value int) {
 	sl.valueChangedPublisher.Publish()
 }
 
+func (sl *Slider) ChangeValue(value int) {
+	sl.SendMessage(win.TBM_SETPOS, 1, uintptr(value))
+}
+
 // ValueChanged returns an Event that can be used to track changes to Value.
 func (sl *Slider) ValueChanged() *Event {
 	return sl.valueChangedPublisher.Event()

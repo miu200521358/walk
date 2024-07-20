@@ -314,6 +314,17 @@ func (ne *NumberEdit) SetValue(value float64) error {
 	return ne.edit.setValue(value, true)
 }
 
+// SetValue sets the value of the NumberEdit.
+func (ne *NumberEdit) ChangeValue(value float64) error {
+	if ne.edit.minValue != ne.edit.maxValue &&
+		(value < ne.edit.minValue || value > ne.edit.maxValue) {
+
+		return newError("value out of range")
+	}
+
+	return ne.edit.changeValue(value, true)
+}
+
 // ValueChanged returns an Event that can be used to track changes to Value.
 func (ne *NumberEdit) ValueChanged() *Event {
 	return ne.edit.valueChangedPublisher.Event()
@@ -555,6 +566,22 @@ func (nle *numberLineEdit) setValue(value float64, setText bool) error {
 	nle.value = value
 
 	nle.valueChangedPublisher.Publish()
+
+	return nil
+}
+
+func (nle *numberLineEdit) changeValue(value float64, setText bool) error {
+	if setText {
+		if err := nle.setTextFromValue(value); err != nil {
+			return err
+		}
+	}
+
+	if value == nle.value {
+		return nil
+	}
+
+	nle.value = value
 
 	return nil
 }
