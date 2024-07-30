@@ -158,7 +158,7 @@ func (le *LineEdit) SetEnabled(enabled bool) {
 	le.WidgetBase.SetEnabled(enabled)
 
 	if !enabled {
-		bg, err := NewSystemColorBrush(SysColor3DFace)
+		bg, err := NewSystemColorBrush(SysColorInactiveBorder)
 		if err != nil {
 			return
 		}

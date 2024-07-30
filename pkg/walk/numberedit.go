@@ -157,7 +157,7 @@ func (ne *NumberEdit) SetEnabled(enabled bool) {
 	ne.WidgetBase.SetEnabled(enabled)
 
 	if !enabled {
-		bg, err := NewSystemColorBrush(SysColor3DFace)
+		bg, err := NewSystemColorBrush(SysColorInactiveBorder)
 		if err != nil {
 			return
 		}
