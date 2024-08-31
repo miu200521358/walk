@@ -41,7 +41,7 @@ type GridLayout struct {
 func NewGridLayout() *GridLayout {
 	l := &GridLayout{
 		LayoutBase: LayoutBase{
-			margins96dpi: Margins{6, 6, 6, 6},
+			margins96dpi: Margins{3, 3, 3, 3},
 			spacing96dpi: 3,
 		},
 		widgetBase2Info: make(map[*WidgetBase]*gridLayoutWidgetInfo),

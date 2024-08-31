@@ -19,7 +19,7 @@ type FlowLayout struct {
 func NewFlowLayout() *FlowLayout {
 	l := &FlowLayout{
 		LayoutBase: LayoutBase{
-			margins96dpi: Margins{6, 6, 6, 6},
+			margins96dpi: Margins{3, 3, 3, 3},
 			spacing96dpi: 3,
 		},
 		hwnd2StretchFactor: make(map[win.HWND]int),
