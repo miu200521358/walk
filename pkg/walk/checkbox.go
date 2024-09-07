@@ -75,6 +75,10 @@ func (cb *CheckBox) setChecked(checked bool) {
 	cb.checkStateChangedPublisher.Publish()
 }
 
+func (cb *CheckBox) updateChecked(checked bool) {
+	cb.Button.setChecked(checked)
+}
+
 func (cb *CheckBox) Tristate() bool {
 	return cb.hasStyleBits(win.BS_AUTO3STATE)
 }

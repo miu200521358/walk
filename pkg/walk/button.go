@@ -20,6 +20,7 @@ type clickable interface {
 
 type setCheckeder interface {
 	setChecked(checked bool)
+	updateChecked(checked bool)
 }
 
 type Button struct {
@@ -145,6 +146,14 @@ func (b *Button) SetChecked(checked bool) {
 	}
 
 	b.window.(setCheckeder).setChecked(checked)
+}
+
+func (b *Button) UpdateChecked(checked bool) {
+	if checked == b.Checked() {
+		return
+	}
+
+	b.window.(setCheckeder).updateChecked(checked)
 }
 
 func (b *Button) setChecked(checked bool) {
