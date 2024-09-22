@@ -237,7 +237,7 @@ func NewTableViewWithCfg(parent Container, cfg *TableViewCfg) (*TableView, error
 	tv.SetPersistent(true)
 
 	exStyle := win.SendMessage(tv.hwndFrozenLV, win.LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
-	exStyle |= win.LVS_EX_DOUBLEBUFFER | win.LVS_EX_FULLROWSELECT | win.LVS_EX_HEADERDRAGDROP | win.LVS_EX_LABELTIP | win.LVS_EX_SUBITEMIMAGES
+	exStyle |= win.LVS_EX_DOUBLEBUFFER | win.LVS_EX_FULLROWSELECT | win.LVS_EX_HEADERDRAGDROP | win.LVS_EX_LABELTIP | win.LVS_EX_SUBITEMIMAGES | win.LVS_OWNERDRAWFIXED
 	win.SendMessage(tv.hwndFrozenLV, win.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, exStyle)
 	win.SendMessage(tv.hwndNormalLV, win.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, exStyle)
 
@@ -1849,6 +1849,17 @@ func (tv *TableView) toggleItemChecked(index int) error {
 		return newError("SendMessage(LVM_UPDATE)")
 	}
 
+	if win.FALSE == win.SendMessage(tv.hwndFrozenLV, win.LVM_REDRAWITEMS, uintptr(index), uintptr(index)) {
+		return newError("SendMessage(LVM_REDRAWITEMS)")
+	}
+	if win.FALSE == win.SendMessage(tv.hwndNormalLV, win.LVM_REDRAWITEMS, uintptr(index), uintptr(index)) {
+		return newError("SendMessage(LVM_REDRAWITEMS)")
+	}
+
+	// 再描画
+	win.UpdateWindow(tv.hwndFrozenLV)
+	win.UpdateWindow(tv.hwndNormalLV)
+
 	return nil
 }
 
@@ -2102,9 +2113,9 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 						}
 
 					case bool:
-						if val {
-							text = checkmark
-						}
+						// if val {
+						// 	text = checkmark
+						// }
 
 					case *big.Rat:
 						prec := tv.columns.items[col].precision
@@ -2139,7 +2150,14 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 					tv.style.dpi = tv.DPI()
 					tv.style.Image = nil
 
+					// originalBackgroundColor := tv.style.BackgroundColor
+
 					styler.StyleCell(&tv.style)
+					// win.SendMessage(hwnd, win.LVM_SETTEXTBKCOLOR, 0, uintptr(tv.style.BackgroundColor))
+
+					// if tv.style.BackgroundColor != originalBackgroundColor {
+					// 	win.SendMessage(hwnd, win.LVM_SETTEXTBKCOLOR, 0, uintptr(tv.style.BackgroundColor))
+					// }
 
 					image = tv.style.Image
 				}
@@ -2169,58 +2187,11 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 					di.Item.State = 0x1000
 				}
 			}
-
 		case win.NM_CUSTOMDRAW:
 			nmlvcd := (*win.NMLVCUSTOMDRAW)(unsafe.Pointer(lp))
 
 			if nmlvcd.IIconPhase == 0 {
 				row := int(nmlvcd.Nmcd.DwItemSpec)
-				col := tv.fromLVColIdx(hwnd == tv.hwndFrozenLV, nmlvcd.ISubItem)
-				if col == -1 {
-					break
-				}
-
-				applyCellStyle := func() int {
-					if tv.styler != nil {
-						dpi := tv.DPI()
-
-						tv.style.row = row
-						tv.style.col = col
-						tv.style.bounds = rectangleFromRECT(nmlvcd.Nmcd.Rc)
-						tv.style.dpi = dpi
-						tv.style.hdc = nmlvcd.Nmcd.Hdc
-						tv.style.BackgroundColor = tv.itemBGColor
-						tv.style.TextColor = tv.itemTextColor
-						tv.style.Font = nil
-						tv.style.Image = nil
-
-						tv.styler.StyleCell(&tv.style)
-
-						defer func() {
-							tv.style.bounds = Rectangle{}
-							if tv.style.canvas != nil {
-								tv.style.canvas.Dispose()
-								tv.style.canvas = nil
-							}
-							tv.style.hdc = 0
-						}()
-
-						if tv.style.canvas != nil {
-							return win.CDRF_SKIPDEFAULT
-						}
-
-						nmlvcd.ClrTextBk = win.COLORREF(tv.style.BackgroundColor)
-						nmlvcd.ClrText = win.COLORREF(tv.style.TextColor)
-
-						font := tv.style.Font
-						if font == nil {
-							font = tv.Font()
-						}
-						win.SelectObject(nmlvcd.Nmcd.Hdc, win.HGDIOBJ(font.handleForDPI(dpi)))
-					}
-
-					return 0
-				}
 
 				switch nmlvcd.Nmcd.DwDrawStage {
 				case win.CDDS_PREPAINT:
@@ -2288,7 +2259,56 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 					nmlvcd.ClrTextBk = win.COLORREF(tv.style.BackgroundColor)
 
 					return win.CDRF_NOTIFYSUBITEMDRAW
+				}
 
+				col := tv.fromLVColIdx(hwnd == tv.hwndFrozenLV, nmlvcd.ISubItem)
+				if col == -1 {
+					break
+				}
+
+				applyCellStyle := func() int {
+					if tv.styler != nil {
+						dpi := tv.DPI()
+
+						tv.style.row = row
+						tv.style.col = col
+						tv.style.bounds = rectangleFromRECT(nmlvcd.Nmcd.Rc)
+						tv.style.dpi = dpi
+						tv.style.hdc = nmlvcd.Nmcd.Hdc
+						tv.style.BackgroundColor = tv.itemBGColor
+						tv.style.TextColor = tv.itemTextColor
+						tv.style.Font = nil
+						tv.style.Image = nil
+
+						tv.styler.StyleCell(&tv.style)
+
+						defer func() {
+							tv.style.bounds = Rectangle{}
+							if tv.style.canvas != nil {
+								tv.style.canvas.Dispose()
+								tv.style.canvas = nil
+							}
+							tv.style.hdc = 0
+						}()
+
+						if tv.style.canvas != nil {
+							return win.CDRF_SKIPDEFAULT
+						}
+
+						nmlvcd.ClrTextBk = win.COLORREF(tv.style.BackgroundColor)
+						nmlvcd.ClrText = win.COLORREF(tv.style.TextColor)
+
+						font := tv.style.Font
+						if font == nil {
+							font = tv.Font()
+						}
+						win.SelectObject(nmlvcd.Nmcd.Hdc, win.HGDIOBJ(font.handleForDPI(dpi)))
+					}
+
+					return 0
+				}
+
+				switch nmlvcd.Nmcd.DwDrawStage {
 				case win.CDDS_ITEMPREPAINT | win.CDDS_SUBITEM:
 					if tv.itemFont != nil {
 						win.SelectObject(nmlvcd.Nmcd.Hdc, win.HGDIOBJ(tv.itemFont.handleForDPI(tv.DPI())))
