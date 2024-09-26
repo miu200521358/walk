@@ -2113,9 +2113,9 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 						}
 
 					case bool:
-						// if val {
-						// 	text = checkmark
-						// }
+						if val {
+							text = checkmark
+						}
 
 					case *big.Rat:
 						prec := tv.columns.items[col].precision
