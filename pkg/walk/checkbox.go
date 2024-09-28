@@ -76,7 +76,7 @@ func (cb *CheckBox) setChecked(checked bool) {
 }
 
 func (cb *CheckBox) updateChecked(checked bool) {
-	cb.Button.setChecked(checked)
+	cb.Button.updateChecked(checked)
 }
 
 func (cb *CheckBox) Tristate() bool {

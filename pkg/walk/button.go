@@ -170,6 +170,18 @@ func (b *Button) setChecked(checked bool) {
 	b.checkedChangedPublisher.Publish()
 }
 
+func (b *Button) updateChecked(checked bool) {
+	var chk uintptr
+
+	if checked {
+		chk = win.BST_CHECKED
+	} else {
+		chk = win.BST_UNCHECKED
+	}
+
+	b.SendMessage(win.BM_SETCHECK, chk, 0)
+}
+
 func (b *Button) CheckedChanged() *Event {
 	return b.checkedChangedPublisher.Event()
 }
