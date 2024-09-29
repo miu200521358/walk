@@ -181,9 +181,9 @@ func (tt *ToolTip) addTool(hwnd win.HWND, track bool) error {
 	}
 	ti.UId = uintptr(hwnd)
 
-	// if win.FALSE == tt.SendMessage(win.TTM_ADDTOOL, 0, uintptr(unsafe.Pointer(&ti))) {
-	// 	return newError("TTM_ADDTOOL failed")
-	// }
+	if win.FALSE == tt.SendMessage(win.TTM_ADDTOOL, 0, uintptr(unsafe.Pointer(&ti))) {
+		return newError("TTM_ADDTOOL failed")
+	}
 
 	return nil
 }

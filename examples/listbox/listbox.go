@@ -32,6 +32,7 @@ func main() {
 						Model:                 mw.model,
 						OnCurrentIndexChanged: mw.lb_CurrentIndexChanged,
 						OnItemActivated:       mw.lb_ItemActivated,
+						ToolTipText:           "This ListBox lists all environment variables.",
 					},
 					TextEdit{
 						AssignTo: &mw.te,
