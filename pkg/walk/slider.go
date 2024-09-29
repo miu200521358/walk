@@ -160,6 +160,21 @@ func (sl *Slider) SetTracking(tracking bool) {
 
 func (sl *Slider) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
+	case win.WM_MOUSEWHEEL:
+		delta := int16(wParam >> 16) // ホイールの回転方向
+		currentValue := sl.Value()
+
+		if delta < 0 {
+			// ホイールを下に回した場合、スライダーの値を1増加
+			sl.SetValue(currentValue + 1)
+		} else {
+			// ホイールを上に回した場合、スライダーの値を1減少
+			sl.SetValue(currentValue - 1)
+		}
+
+		sl.valueChangedPublisher.Publish() // 値が変更されたことを通知
+		return 0
+
 	case win.WM_HSCROLL, win.WM_VSCROLL:
 		switch win.LOWORD(uint32(wParam)) {
 		case win.TB_THUMBPOSITION, win.TB_ENDTRACK:
