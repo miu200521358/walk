@@ -9,9 +9,7 @@ package walk
 
 import (
 	"syscall"
-)
 
-import (
 	"github.com/miu200521358/win"
 )
 
@@ -128,7 +126,7 @@ func (f *Font) createForDPI(dpi int) (win.HFONT, error) {
 	if f.style&FontStrikeOut > 0 {
 		lf.LfStrikeOut = 1
 	}
-	lf.LfCharSet = win.DEFAULT_CHARSET
+	lf.LfCharSet = win.SHIFTJIS_CHARSET // 日本語対応
 	lf.LfOutPrecision = win.OUT_TT_PRECIS
 	lf.LfClipPrecision = win.CLIP_DEFAULT_PRECIS
 	lf.LfQuality = win.CLEARTYPE_QUALITY

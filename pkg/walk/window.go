@@ -1554,7 +1554,7 @@ func (wb *WindowBase) dialogBaseUnits() Size {
 		newError("GetTextExtentPoint32 failed")
 	}
 
-	s := Size{int((size.CX/26 + 1) / 2), int(tm.TmHeight)}
+	s := Size{int((size.CX/26 + 1)), int(tm.TmHeight)}
 
 	fontInfoAndDPI2DialogBaseUnits[fi] = s
 
