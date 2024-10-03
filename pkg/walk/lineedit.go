@@ -68,7 +68,7 @@ func newLineEdit(parent Window, exStyle uint32) (*LineEdit, error) {
 		func(v interface{}) error {
 			return le.SetText(assertStringOr(v, ""))
 		},
-		le.textChangedPublisher.Event()))
+		nil))
 
 	return le, nil
 }
@@ -203,6 +203,12 @@ func (le *LineEdit) Text() string {
 }
 
 func (le *LineEdit) SetText(value string) error {
+	le.setText(value)
+	le.textChangedPublisher.Publish()
+	return nil
+}
+
+func (le *LineEdit) ChangeText(value string) error {
 	return le.setText(value)
 }
 
@@ -376,11 +382,11 @@ func (*LineEdit) NeedsWmSize() bool {
 
 func (le *LineEdit) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
-	case win.WM_COMMAND:
-		switch win.HIWORD(uint32(wParam)) {
-		case win.EN_CHANGE:
-			le.textChangedPublisher.Publish()
-		}
+	// case win.WM_COMMAND:
+	// 	switch win.HIWORD(uint32(wParam)) {
+	// 	case win.EN_CHANGE:
+	// 		le.textChangedPublisher.Publish()
+	// 	}
 
 	case win.WM_GETDLGCODE:
 		if form := ancestor(le); form != nil {

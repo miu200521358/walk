@@ -173,6 +173,24 @@ func (te *TextEdit) SetText(text string) (err error) {
 	return
 }
 
+func (te *TextEdit) ChangeText(text string) (err error) {
+	if text == te.Text() {
+		return nil
+	}
+
+	var oldLineCount int
+	if te.compactHeight {
+		oldLineCount = int(te.SendMessage(win.EM_GETLINECOUNT, 0, 0))
+	}
+	err = te.setText(text)
+	if te.compactHeight {
+		if newLineCount := int(te.SendMessage(win.EM_GETLINECOUNT, 0, 0)); newLineCount != oldLineCount {
+			te.RequestLayout()
+		}
+	}
+	return
+}
+
 func (te *TextEdit) CompactHeight() bool {
 	return te.compactHeight
 }
