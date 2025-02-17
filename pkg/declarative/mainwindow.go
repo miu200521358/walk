@@ -29,6 +29,7 @@ type MainWindow struct {
 	OnMouseMove        walk.MouseEventHandler
 	OnMouseUp          walk.MouseEventHandler
 	OnSizeChanged      walk.EventHandler
+	OnClosing          walk.CloseEventHandler
 	Persistent         bool
 	RightToLeftLayout  bool
 	RightToLeftReading bool
@@ -171,6 +172,10 @@ func (mw MainWindow) Create() error {
 
 		if mw.OnDropFiles != nil {
 			w.DropFiles().Attach(mw.OnDropFiles)
+		}
+
+		if mw.OnClosing != nil {
+			w.Closing().Attach(mw.OnClosing)
 		}
 
 		// if mw.AssignTo != nil {

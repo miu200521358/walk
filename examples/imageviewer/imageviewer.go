@@ -8,9 +8,7 @@ import (
 	"log"
 	"path"
 	"strings"
-)
 
-import (
 	. "github.com/miu200521358/walk/pkg/declarative"
 	"github.com/miu200521358/walk/pkg/walk"
 )
@@ -58,6 +56,22 @@ func main() {
 		Children: []Widget{
 			TabWidget{
 				AssignTo: &mw.tabWidget,
+				Pages: []TabPage{
+					{
+						Title:  "File",
+						Layout: VBox{},
+						Children: []Widget{
+							Composite{
+								Layout: VBox{},
+								Children: []Widget{
+									TextLabel{
+										Text: "表示用モデル設定説明",
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}.Run()); err != nil {
