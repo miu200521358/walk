@@ -61,7 +61,7 @@ type TabPage struct {
 }
 
 func (tp TabPage) Create(builder *Builder) error {
-	w, err := walk.NewTabPage()
+	w, err := walk.NewTabPage(builder.Parent())
 	if err != nil {
 		return err
 	}

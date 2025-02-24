@@ -118,7 +118,7 @@ func (mw *MyMainWindow) openImage() error {
 		}
 	}()
 
-	page, err := walk.NewTabPage()
+	page, err := walk.NewTabPage(mw.MainWindow)
 	if err != nil {
 		return err
 	}

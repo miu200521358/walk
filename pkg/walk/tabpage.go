@@ -32,14 +32,14 @@ type TabPage struct {
 	imageChangedPublisher EventPublisher
 }
 
-func NewTabPage() (*TabPage, error) {
+func NewTabPage(container Container) (*TabPage, error) {
 	tp := new(TabPage)
 
 	if err := InitWindow(
 		tp,
-		nil,
+		container,
 		tabPageWindowClass,
-		win.WS_POPUP,
+		win.WS_CHILD,
 		win.WS_EX_CONTROLPARENT); err != nil {
 		return nil, err
 	}
