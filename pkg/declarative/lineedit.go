@@ -63,6 +63,7 @@ type LineEdit struct {
 	MaxLength         int
 	OnEditingFinished walk.EventHandler
 	OnTextChanged     walk.EventHandler
+	OnDropFiles       walk.DropFilesEventHandler
 	PasswordMode      bool
 	ReadOnly          Property
 	Text              Property
@@ -104,6 +105,9 @@ func (le LineEdit) Create(builder *Builder) error {
 		}
 		if le.OnTextChanged != nil {
 			w.TextChanged().Attach(le.OnTextChanged)
+		}
+		if le.OnDropFiles != nil {
+			w.DropFiles().Attach(le.OnDropFiles)
 		}
 
 		return nil
