@@ -91,6 +91,9 @@ type FormBase struct {
 	startingPublisher           EventPublisher
 	titleChangedPublisher       EventPublisher
 	iconChangedPublisher        EventPublisher
+	movingPublisher             RectEventPublisher
+	enterSizeMovePublisher      EventPublisher
+	exitSizeMovePublisher       EventPublisher
 	progressIndicator           *ProgressIndicator
 	icon                        Image
 	prevFocusHWnd               win.HWND
@@ -101,6 +104,7 @@ type FormBase struct {
 	isInRestoreState            bool
 	started                     bool
 	layoutScheduled             bool
+	MovingRect                  Rectangle
 }
 
 func (fb *FormBase) init(form Form) error {
@@ -481,6 +485,18 @@ func (fb *FormBase) Deactivating() *Event {
 	return fb.deactivatingPublisher.Event()
 }
 
+func (fb *FormBase) Moving() *RectEvent {
+	return fb.movingPublisher.Event()
+}
+
+func (fb *FormBase) EnterSizeMove() *Event {
+	return fb.enterSizeMovePublisher.Event()
+}
+
+func (fb *FormBase) ExitSizeMove() *Event {
+	return fb.exitSizeMovePublisher.Event()
+}
+
 func (fb *FormBase) Activate() error {
 	if hwndPrevActive := win.SetActiveWindow(fb.hWnd); hwndPrevActive == 0 {
 		return lastError("SetActiveWindow")
@@ -729,6 +745,13 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 
 		return 0
 
+	case win.WM_MOVING:
+		r := (*win.RECT)(unsafe.Pointer(lParam))
+
+		fb.MovingRect = rectangleFromRECT(*r)
+
+		fb.movingPublisher.Publish(fb.MovingRect.X, fb.MovingRect.Y, fb.MovingRect.Width, fb.MovingRect.Height)
+
 	case win.WM_CLOSE:
 		fb.closeReason = CloseReasonUnknown
 		var canceled bool
@@ -783,10 +806,12 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 	case win.WM_ENTERSIZEMOVE:
 		fb.inSizingLoop = true
 		fb.inSizeLoop <- true
+		fb.enterSizeMovePublisher.Publish()
 
 	case win.WM_EXITSIZEMOVE:
 		fb.inSizingLoop = false
 		fb.inSizeLoop <- false
+		fb.exitSizeMovePublisher.Publish()
 
 	case win.WM_WINDOWPOSCHANGED:
 		wp := (*win.WINDOWPOS)(unsafe.Pointer(lParam))
