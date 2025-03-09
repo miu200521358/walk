@@ -30,6 +30,8 @@ type MainWindow struct {
 	OnMouseUp          walk.MouseEventHandler
 	OnSizeChanged      walk.EventHandler
 	OnClosing          walk.CloseEventHandler
+	OnActivate         walk.EventHandler
+	OnDeactivate       walk.EventHandler
 	Persistent         bool
 	RightToLeftLayout  bool
 	RightToLeftReading bool
@@ -176,6 +178,14 @@ func (mw MainWindow) Create() error {
 
 		if mw.OnClosing != nil {
 			w.Closing().Attach(mw.OnClosing)
+		}
+
+		if mw.OnActivate != nil {
+			w.Activating().Attach(mw.OnActivate)
+		}
+
+		if mw.OnDeactivate != nil {
+			w.Deactivating().Attach(mw.OnDeactivate)
 		}
 
 		// if mw.AssignTo != nil {

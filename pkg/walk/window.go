@@ -1964,6 +1964,14 @@ func (wb *WindowBase) SetFocus() error {
 	return nil
 }
 
+func (wb *WindowBase) SetForegroundWindow() error {
+	if !win.SetForegroundWindow(wb.hWnd) {
+		return lastError("SetForegroundWindow")
+	}
+
+	return nil
+}
+
 // FocusedChanged returns an Event that you can attach to for handling focus
 // change events for the WindowBase.
 func (wb *WindowBase) FocusedChanged() *Event {
