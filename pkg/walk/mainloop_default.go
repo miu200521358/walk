@@ -18,6 +18,10 @@ func (fb *FormBase) mainLoop() int {
 	defer win.GlobalFree(win.HGLOBAL(unsafe.Pointer(msg)))
 
 	for fb.hWnd != 0 {
+		// if msg.Message != 1030 {
+		// 	log.Printf("[%s] msg: HWnd: %v, Message: %v, WParam: %v, LParam: %v\n", time.Now().Format("15:04:05.000"), msg.HWnd, msg.Message, msg.WParam, msg.LParam)
+		// }
+
 		switch win.GetMessage(msg, 0, 0, 0) {
 		case 0:
 			return int(msg.WParam)

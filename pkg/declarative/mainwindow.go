@@ -12,27 +12,27 @@ import "github.com/miu200521358/walk/pkg/walk"
 type MainWindow struct {
 	// Window
 
-	Accessibility      Accessibility
-	Background         Brush
-	ContextMenuItems   []MenuItem
-	DoubleBuffering    bool
-	Enabled            Property
-	Font               Font
-	MaxSize            Size
-	MinSize            Size
-	Name               string
-	OnBoundsChanged    walk.EventHandler
-	OnKeyDown          walk.KeyEventHandler
-	OnKeyPress         walk.KeyEventHandler
-	OnKeyUp            walk.KeyEventHandler
-	OnMouseDown        walk.MouseEventHandler
-	OnMouseMove        walk.MouseEventHandler
-	OnMouseUp          walk.MouseEventHandler
-	OnSizeChanged      walk.EventHandler
-	OnClosing          walk.CloseEventHandler
-	OnActivate         walk.EventHandler
-	OnDeactivate       walk.EventHandler
-	OnMoving           walk.RectEventHandler
+	Accessibility    Accessibility
+	Background       Brush
+	ContextMenuItems []MenuItem
+	DoubleBuffering  bool
+	Enabled          Property
+	Font             Font
+	MaxSize          Size
+	MinSize          Size
+	Name             string
+	OnBoundsChanged  walk.EventHandler
+	OnKeyDown        walk.KeyEventHandler
+	OnKeyPress       walk.KeyEventHandler
+	OnKeyUp          walk.KeyEventHandler
+	OnMouseDown      walk.MouseEventHandler
+	OnMouseMove      walk.MouseEventHandler
+	OnMouseUp        walk.MouseEventHandler
+	OnSizeChanged    walk.EventHandler
+	OnClosing        walk.CloseEventHandler
+	OnActivate       walk.EventHandler
+	OnDeactivate     walk.EventHandler
+	// OnMoving           walk.RectEventHandler
 	OnEnterSizeMove    walk.EventHandler
 	OnExitSizeMove     walk.EventHandler
 	Persistent         bool
@@ -191,9 +191,9 @@ func (mw MainWindow) Create() error {
 			w.Deactivating().Attach(mw.OnDeactivate)
 		}
 
-		if mw.OnMoving != nil {
-			w.Moving().Attach(mw.OnMoving)
-		}
+		// if mw.OnMoving != nil {
+		// 	w.Moving().Attach(mw.OnMoving)
+		// }
 
 		if mw.OnEnterSizeMove != nil {
 			w.EnterSizeMove().Attach(mw.OnEnterSizeMove)

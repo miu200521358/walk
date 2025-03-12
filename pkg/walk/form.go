@@ -76,22 +76,22 @@ type Form interface {
 
 type FormBase struct {
 	WindowBase
-	clientComposite             *Composite
-	owner                       Form
-	stopwatch                   *stopwatch
-	inProgressEventCount        int
-	performLayout               chan ContainerLayoutItem
-	layoutResults               chan []LayoutResult
-	inSizeLoop                  chan bool
-	updateStopwatch             chan *stopwatch
-	quitLayoutPerformer         chan struct{}
-	closingPublisher            CloseEventPublisher
-	activatingPublisher         EventPublisher
-	deactivatingPublisher       EventPublisher
-	startingPublisher           EventPublisher
-	titleChangedPublisher       EventPublisher
-	iconChangedPublisher        EventPublisher
-	movingPublisher             RectEventPublisher
+	clientComposite       *Composite
+	owner                 Form
+	stopwatch             *stopwatch
+	inProgressEventCount  int
+	performLayout         chan ContainerLayoutItem
+	layoutResults         chan []LayoutResult
+	inSizeLoop            chan bool
+	updateStopwatch       chan *stopwatch
+	quitLayoutPerformer   chan struct{}
+	closingPublisher      CloseEventPublisher
+	activatingPublisher   EventPublisher
+	deactivatingPublisher EventPublisher
+	startingPublisher     EventPublisher
+	titleChangedPublisher EventPublisher
+	iconChangedPublisher  EventPublisher
+	// movingPublisher             RectEventPublisher
 	enterSizeMovePublisher      EventPublisher
 	exitSizeMovePublisher       EventPublisher
 	progressIndicator           *ProgressIndicator
@@ -104,7 +104,7 @@ type FormBase struct {
 	isInRestoreState            bool
 	started                     bool
 	layoutScheduled             bool
-	MovingRect                  Rectangle
+	// MovingRect                  Rectangle
 }
 
 func (fb *FormBase) init(form Form) error {
@@ -485,9 +485,9 @@ func (fb *FormBase) Deactivating() *Event {
 	return fb.deactivatingPublisher.Event()
 }
 
-func (fb *FormBase) Moving() *RectEvent {
-	return fb.movingPublisher.Event()
-}
+// func (fb *FormBase) Moving() *RectEvent {
+// 	return fb.movingPublisher.Event()
+// }
 
 func (fb *FormBase) EnterSizeMove() *Event {
 	return fb.enterSizeMovePublisher.Event()
@@ -745,12 +745,14 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 
 		return 0
 
-	case win.WM_MOVING:
-		r := (*win.RECT)(unsafe.Pointer(lParam))
+	// case win.WM_MOVING:
+	// 	r := (*win.RECT)(unsafe.Pointer(lParam))
 
-		fb.MovingRect = rectangleFromRECT(*r)
+	// 	fb.MovingRect = rectangleFromRECT(*r)
 
-		fb.movingPublisher.Publish(fb.MovingRect.X, fb.MovingRect.Y, fb.MovingRect.Width, fb.MovingRect.Height)
+	// 	fb.movingPublisher.Publish(fb.MovingRect.X, fb.MovingRect.Y, fb.MovingRect.Width, fb.MovingRect.Height)
+
+	// 	return 0
 
 	case win.WM_CLOSE:
 		fb.closeReason = CloseReasonUnknown
@@ -804,14 +806,14 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 		fb.titleChangedPublisher.Publish()
 
 	case win.WM_ENTERSIZEMOVE:
+		fb.enterSizeMovePublisher.Publish()
 		fb.inSizingLoop = true
 		fb.inSizeLoop <- true
-		fb.enterSizeMovePublisher.Publish()
 
 	case win.WM_EXITSIZEMOVE:
+		fb.exitSizeMovePublisher.Publish()
 		fb.inSizingLoop = false
 		fb.inSizeLoop <- false
-		fb.exitSizeMovePublisher.Publish()
 
 	case win.WM_WINDOWPOSCHANGED:
 		wp := (*win.WINDOWPOS)(unsafe.Pointer(lParam))
