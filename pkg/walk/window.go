@@ -1964,6 +1964,14 @@ func (wb *WindowBase) SetFocus() error {
 	return nil
 }
 
+func (wb *WindowBase) SetShowWindowRestore() error {
+	if !win.ShowWindow(wb.hWnd, win.SW_RESTORE) {
+		return lastError("ShowWindow")
+	}
+
+	return nil
+}
+
 func (wb *WindowBase) SetForegroundWindow() error {
 	if !win.SetForegroundWindow(wb.hWnd) {
 		return lastError("SetForegroundWindow")

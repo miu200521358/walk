@@ -76,21 +76,24 @@ type Form interface {
 
 type FormBase struct {
 	WindowBase
-	clientComposite       *Composite
-	owner                 Form
-	stopwatch             *stopwatch
-	inProgressEventCount  int
-	performLayout         chan ContainerLayoutItem
-	layoutResults         chan []LayoutResult
-	inSizeLoop            chan bool
-	updateStopwatch       chan *stopwatch
-	quitLayoutPerformer   chan struct{}
-	closingPublisher      CloseEventPublisher
-	activatingPublisher   EventPublisher
-	deactivatingPublisher EventPublisher
-	startingPublisher     EventPublisher
-	titleChangedPublisher EventPublisher
-	iconChangedPublisher  EventPublisher
+	clientComposite          *Composite
+	owner                    Form
+	stopwatch                *stopwatch
+	inProgressEventCount     int
+	performLayout            chan ContainerLayoutItem
+	layoutResults            chan []LayoutResult
+	inSizeLoop               chan bool
+	updateStopwatch          chan *stopwatch
+	quitLayoutPerformer      chan struct{}
+	closingPublisher         CloseEventPublisher
+	activatingPublisher      EventPublisher
+	clickActivatingPublisher EventPublisher
+	deactivatingPublisher    EventPublisher
+	startingPublisher        EventPublisher
+	titleChangedPublisher    EventPublisher
+	iconChangedPublisher     EventPublisher
+	restoredPublisher        EventPublisher
+	minimizedPublisher       EventPublisher
 	// movingPublisher             RectEventPublisher
 	enterSizeMovePublisher      EventPublisher
 	exitSizeMovePublisher       EventPublisher
@@ -481,8 +484,20 @@ func (fb *FormBase) Activating() *Event {
 	return fb.activatingPublisher.Event()
 }
 
+func (fb *FormBase) ClickActivating() *Event {
+	return fb.clickActivatingPublisher.Event()
+}
+
 func (fb *FormBase) Deactivating() *Event {
 	return fb.deactivatingPublisher.Event()
+}
+
+func (fb *FormBase) Restored() *Event {
+	return fb.restoredPublisher.Event()
+}
+
+func (fb *FormBase) Minimized() *Event {
+	return fb.minimizedPublisher.Event()
 }
 
 // func (fb *FormBase) Moving() *RectEvent {
@@ -735,6 +750,9 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 
 			fb.activatingPublisher.Publish()
 
+			if win.LOWORD(uint32(wParam)) == win.WA_CLICKACTIVE {
+				fb.clickActivatingPublisher.Publish()
+			}
 		case win.WA_INACTIVE:
 			fb.prevFocusHWnd = win.GetFocus()
 
@@ -901,6 +919,20 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 	case win.WM_SYSCOMMAND:
 		if wParam == win.SC_CLOSE {
 			fb.closeReason = CloseReasonUser
+		} else if wParam == win.SC_MINIMIZE {
+			// SC_MINIMIZEコマンドを検知して最小化状態を同期
+			fb.minimizedPublisher.Publish()
+		} else if wParam == win.SC_RESTORE {
+			// SC_RESTOREコマンドを検知して復元状態を同期
+			fb.restoredPublisher.Publish()
+		}
+
+	case win.WM_SIZE:
+		// WM_SIZEに対するwParamの値を直接数値で比較
+		if wParam == 1 { // SIZE_MINIMIZED = 1
+			fb.minimizedPublisher.Publish()
+		} else if wParam == 0 { // SIZE_RESTORED = 0
+			fb.restoredPublisher.Publish()
 		}
 
 	case taskbarButtonCreatedMsgId:
