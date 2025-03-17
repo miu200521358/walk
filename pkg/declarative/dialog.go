@@ -36,6 +36,7 @@ type Dialog struct {
 	RightToLeftReading bool
 	ToolTipText        Property
 	Visible            Property
+	Position           *walk.Point
 
 	// Container
 
@@ -163,6 +164,10 @@ func (d Dialog) Create(owner walk.Form) error {
 			for name, fn := range d.Functions {
 				builder.functions[name] = fn
 			}
+		}
+		if d.Position != nil {
+			w.SetX(d.Position.X)
+			w.SetY(d.Position.Y)
 		}
 
 		return nil
