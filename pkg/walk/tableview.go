@@ -90,6 +90,7 @@ type TableView struct {
 	currentIndexChangedPublisher       EventPublisher
 	selectedIndexesChangedPublisher    EventPublisher
 	itemActivatedPublisher             EventPublisher
+	itemClickedPublisher               EventPublisher
 	columnClickedPublisher             IntEventPublisher
 	columnsOrderableChangedPublisher   EventPublisher
 	columnsSizableChangedPublisher     EventPublisher
@@ -1128,6 +1129,10 @@ func (tv *TableView) ColumnClicked() *IntEvent {
 // when the item is selected.
 func (tv *TableView) ItemActivated() *Event {
 	return tv.itemActivatedPublisher.Event()
+}
+
+func (tv *TableView) ItemClicked() *Event {
+	return tv.itemClickedPublisher.Event()
 }
 
 // RestoringCurrentItemOnReset returns whether the TableView after its model
@@ -2438,6 +2443,8 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 				tv.SetCurrentIndex(int(nmia.IItem))
 				tv.currentIndexChangedPublisher.Publish()
 				tv.currentItemChangedPublisher.Publish()
+			} else {
+				tv.itemClickedPublisher.Publish()
 			}
 
 			tv.itemActivatedPublisher.Publish()

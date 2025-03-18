@@ -68,6 +68,7 @@ type TableView struct {
 	OnCurrentIndexChanged       walk.EventHandler
 	OnItemActivated             walk.EventHandler
 	OnSelectedIndexesChanged    walk.EventHandler
+	OnItemClicked               walk.EventHandler
 	SelectionHiddenWithoutFocus bool
 	StyleCell                   func(style *walk.CellStyle)
 }
@@ -185,6 +186,9 @@ func (tv TableView) Create(builder *Builder) error {
 		}
 		if tv.OnItemActivated != nil {
 			w.ItemActivated().Attach(tv.OnItemActivated)
+		}
+		if tv.OnItemClicked != nil {
+			w.ItemClicked().Attach(tv.OnItemClicked)
 		}
 
 		return nil
