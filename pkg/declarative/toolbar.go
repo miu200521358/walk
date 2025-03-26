@@ -58,12 +58,13 @@ type ToolBar struct {
 
 	// ToolBar
 
-	Actions     []*walk.Action // Deprecated, use Items instead
-	AssignTo    **walk.ToolBar
-	ButtonStyle ToolBarButtonStyle
-	Items       []MenuItem
-	MaxTextRows int
-	Orientation Orientation
+	Actions            []*walk.Action // Deprecated, use Items instead
+	AssignTo           **walk.ToolBar
+	ButtonStyle        ToolBarButtonStyle
+	Items              []MenuItem
+	MaxTextRows        int
+	Orientation        Orientation
+	DefaultButtonWidth int
 }
 
 func (tb ToolBar) Create(builder *Builder) error {
@@ -97,6 +98,10 @@ func (tb ToolBar) Create(builder *Builder) error {
 			if err := addToActionList(w.Actions(), tb.Actions); err != nil {
 				return err
 			}
+		}
+
+		if tb.DefaultButtonWidth > 0 {
+			w.SetDefaultButtonWidth(tb.DefaultButtonWidth)
 		}
 
 		return nil
