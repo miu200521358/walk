@@ -24,14 +24,15 @@ type Slider struct {
 type SliderCfg struct {
 	Orientation    Orientation
 	ToolTipsHidden bool
+	Increment      int // スライダーのメモリ
 }
 
 func NewSlider(parent Container) (*Slider, error) {
-	return NewSliderWithOrientation(parent, Horizontal)
+	return NewSliderWithOrientation(parent, Horizontal, 1)
 }
 
-func NewSliderWithOrientation(parent Container, orientation Orientation) (*Slider, error) {
-	return NewSliderWithCfg(parent, &SliderCfg{Orientation: orientation})
+func NewSliderWithOrientation(parent Container, orientation Orientation, increment int) (*Slider, error) {
+	return NewSliderWithCfg(parent, &SliderCfg{Orientation: orientation, Increment: increment})
 }
 
 func NewSliderWithCfg(parent Container, cfg *SliderCfg) (*Slider, error) {
@@ -41,11 +42,17 @@ func NewSliderWithCfg(parent Container, cfg *SliderCfg) (*Slider, error) {
 	if cfg.Orientation == Vertical {
 		style |= win.TBS_VERT
 		sl.layoutFlags = ShrinkableVert | GrowableVert
+		if cfg.Increment > 0 {
+			style |= win.TBS_RIGHT
+		}
 	} else {
 		sl.layoutFlags = ShrinkableHorz | GrowableHorz
 	}
 	if !cfg.ToolTipsHidden {
 		style |= win.TBS_TOOLTIPS
+	}
+	if cfg.Increment > 0 {
+		style |= win.TBS_AUTOTICKS
 	}
 
 	if err := InitWidget(
@@ -95,6 +102,10 @@ func (sl *Slider) Value() int {
 func (sl *Slider) SetValue(value int) {
 	sl.SendMessage(win.TBM_SETPOS, 1, uintptr(value))
 	sl.valueChangedPublisher.Publish()
+}
+
+func (sl *Slider) SetIncrement(increment int) {
+	sl.SendMessage(win.TBM_SETTICFREQ, uintptr(increment), 0)
 }
 
 func (sl *Slider) ChangeValue(value int) {

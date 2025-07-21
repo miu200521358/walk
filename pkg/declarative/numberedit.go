@@ -90,6 +90,7 @@ func (ne NumberEdit) Create(builder *Builder) error {
 		}
 
 		if ne.MinValue != 0 || ne.MaxValue != 0 {
+			w.SetValue(ne.MinValue)
 			if err := w.SetRange(ne.MinValue, ne.MaxValue); err != nil {
 				return err
 			}

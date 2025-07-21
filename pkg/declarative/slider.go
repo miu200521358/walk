@@ -58,6 +58,7 @@ type Slider struct {
 	PageSize       int
 	ToolTipsHidden bool
 	Tracking       bool
+	Increment      int // スライダーのメモリ
 	Value          Property
 }
 
@@ -65,6 +66,7 @@ func (sl Slider) Create(builder *Builder) error {
 	w, err := walk.NewSliderWithCfg(builder.Parent(), &walk.SliderCfg{
 		Orientation:    walk.Orientation(sl.Orientation),
 		ToolTipsHidden: sl.ToolTipsHidden,
+		Increment:      sl.Increment,
 	})
 	if err != nil {
 		return err
@@ -84,8 +86,12 @@ func (sl Slider) Create(builder *Builder) error {
 		}
 		w.SetTracking(sl.Tracking)
 
-		if sl.MaxValue > sl.MinValue {
+		if sl.MaxValue >= sl.MinValue {
 			w.SetRange(sl.MinValue, sl.MaxValue)
+		}
+
+		if sl.Increment > 0 {
+			w.SetIncrement(sl.Increment)
 		}
 
 		if sl.OnValueChanged != nil {

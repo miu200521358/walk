@@ -124,7 +124,7 @@ func NewNumberEdit(parent Container) (*NumberEdit, error) {
 			return ne.Value()
 		},
 		func(v interface{}) error {
-			return ne.SetValue(assertFloat64Or(v, 0.0))
+			return ne.SetValue(assertFloat64Or(v, ne.MinValue()))
 		},
 		ne.edit.valueChangedPublisher.Event()))
 
