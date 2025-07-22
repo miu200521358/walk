@@ -55,10 +55,12 @@ type TreeView struct {
 	OnCurrentItemChanged walk.EventHandler
 	OnExpandedChanged    walk.TreeItemEventHandler
 	OnItemActivated      walk.EventHandler
+	OnItemChecked        walk.TreeItemEventHandler
+	Checkable            bool
 }
 
 func (tv TreeView) Create(builder *Builder) error {
-	w, err := walk.NewTreeView(builder.Parent())
+	w, err := walk.NewTreeView(builder.Parent(), tv.Checkable)
 	if err != nil {
 		return err
 	}
@@ -82,6 +84,10 @@ func (tv TreeView) Create(builder *Builder) error {
 
 		if tv.OnExpandedChanged != nil {
 			w.ExpandedChanged().Attach(tv.OnExpandedChanged)
+		}
+
+		if tv.OnItemChecked != nil {
+			w.ItemChecked().Attach(tv.OnItemChecked)
 		}
 
 		if tv.OnItemActivated != nil {

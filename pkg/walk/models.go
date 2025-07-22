@@ -659,6 +659,10 @@ type TreeModel interface {
 	// ItemRemoved returns the event that the model should publish when an item
 	// was removed from the model.
 	ItemRemoved() *TreeItemEvent
+
+	// ItemChecked returns the event that the model should publish when an item's
+	// checked state was changed.
+	ItemChecked() *TreeItemEvent
 }
 
 // TreeModelBase partially implements the TreeModel interface.
@@ -671,6 +675,7 @@ type TreeModelBase struct {
 	itemChangedPublisher  TreeItemEventPublisher
 	itemInsertedPublisher TreeItemEventPublisher
 	itemRemovedPublisher  TreeItemEventPublisher
+	itemCheckedPublisher  TreeItemEventPublisher
 }
 
 func (tmb *TreeModelBase) LazyPopulation() bool {
@@ -693,6 +698,10 @@ func (tmb *TreeModelBase) ItemRemoved() *TreeItemEvent {
 	return tmb.itemRemovedPublisher.Event()
 }
 
+func (tmb *TreeModelBase) ItemChecked() *TreeItemEvent {
+	return tmb.itemCheckedPublisher.Event()
+}
+
 func (tmb *TreeModelBase) PublishItemsReset(parent TreeItem) {
 	tmb.itemsResetPublisher.Publish(parent)
 }
@@ -707,4 +716,8 @@ func (tmb *TreeModelBase) PublishItemInserted(item TreeItem) {
 
 func (tmb *TreeModelBase) PublishItemRemoved(item TreeItem) {
 	tmb.itemRemovedPublisher.Publish(item)
+}
+
+func (tmb *TreeModelBase) PublishItemChecked(item TreeItem) {
+	tmb.itemCheckedPublisher.Publish(item)
 }

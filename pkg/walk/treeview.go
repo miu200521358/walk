@@ -27,6 +27,7 @@ type TreeView struct {
 	itemChangedEventHandlerHandle  int
 	itemInsertedEventHandlerHandle int
 	itemRemovedEventHandlerHandle  int
+	itemCheckedEventHandlerHandle  int
 	item2Info                      map[TreeItem]*treeViewItemInfo
 	handle2Item                    map[win.HTREEITEM]TreeItem
 	currItem                       TreeItem
@@ -37,16 +38,22 @@ type TreeView struct {
 	expandedChangedPublisher       TreeItemEventPublisher
 	currentItemChangedPublisher    EventPublisher
 	itemActivatedPublisher         EventPublisher
+	itemCheckedPublisher           TreeItemEventPublisher
 }
 
-func NewTreeView(parent Container) (*TreeView, error) {
+func NewTreeView(parent Container, checkable bool) (*TreeView, error) {
 	tv := new(TreeView)
+
+	style := uint32(win.WS_TABSTOP | win.WS_VISIBLE | win.TVS_HASBUTTONS | win.TVS_LINESATROOT | win.TVS_SHOWSELALWAYS | win.TVS_TRACKSELECT)
+	if checkable {
+		style |= win.TVS_CHECKBOXES
+	}
 
 	if err := InitWidget(
 		tv,
 		parent,
 		"SysTreeView32",
-		win.WS_TABSTOP|win.WS_VISIBLE|win.TVS_HASBUTTONS|win.TVS_LINESATROOT|win.TVS_SHOWSELALWAYS|win.TVS_TRACKSELECT,
+		style,
 		win.WS_EX_CLIENTEDGE); err != nil {
 		return nil, err
 	}
@@ -134,6 +141,7 @@ func (tv *TreeView) SetModel(model TreeModel) error {
 		tv.model.ItemChanged().Detach(tv.itemChangedEventHandlerHandle)
 		tv.model.ItemInserted().Detach(tv.itemInsertedEventHandlerHandle)
 		tv.model.ItemRemoved().Detach(tv.itemRemovedEventHandlerHandle)
+		tv.model.ItemChecked().Detach(tv.itemCheckedEventHandlerHandle)
 
 		tv.disposeImageListAndCaches()
 	}
@@ -195,6 +203,11 @@ func (tv *TreeView) SetModel(model TreeModel) error {
 			if err := tv.removeItem(item); err != nil {
 				return
 			}
+		})
+
+		tv.itemCheckedEventHandlerHandle = model.ItemChecked().Attach(func(item TreeItem) {
+			// チェック状態変更時の処理（必要に応じてUIの更新など）
+			tv.itemCheckedPublisher.Publish(item)
 		})
 	}
 
@@ -557,6 +570,10 @@ func (tv *TreeView) ItemActivated() *Event {
 	return tv.itemActivatedPublisher.Event()
 }
 
+func (tv *TreeView) ItemChecked() *TreeItemEvent {
+	return tv.itemCheckedPublisher.Event()
+}
+
 func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
 	case win.WM_GETDLGCODE:
@@ -636,6 +653,25 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 			tv.currItem = tv.handle2Item[nmtv.ItemNew.HItem]
 
 			tv.currentItemChangedPublisher.Publish()
+
+		case win.NM_CLICK:
+			// チェックボックスクリック時の処理
+			// マウス位置を取得
+			var pt win.POINT
+			win.GetCursorPos(&pt)
+			win.ScreenToClient(tv.hWnd, &pt)
+
+			// ヒットテスト
+			hti := win.TVHITTESTINFO{Pt: pt}
+			tv.SendMessage(win.TVM_HITTEST, 0, uintptr(unsafe.Pointer(&hti)))
+
+			// チェックボックス部分がクリックされた場合
+			if hti.Flags&win.TVHT_ONITEMSTATEICON != 0 {
+				if item, ok := tv.handle2Item[hti.HItem]; ok {
+					// チェック状態変更イベントを発行
+					tv.itemCheckedPublisher.Publish(item)
+				}
+			}
 		}
 	}
 
@@ -648,4 +684,58 @@ func (*TreeView) NeedsWmSize() bool {
 
 func (tv *TreeView) CreateLayoutItem(ctx *LayoutContext) LayoutItem {
 	return NewGreedyLayoutItem()
+}
+
+// Checked returns whether the specified item is checked (for checkable TreeViews)
+func (tv *TreeView) Checked(item TreeItem) bool {
+	if item == nil {
+		return false
+	}
+
+	info := tv.item2Info[item]
+	if info == nil {
+		return false
+	}
+
+	// TVM_GETITEMSTATEメッセージを使用してチェック状態を取得
+	state := tv.SendMessage(win.TVM_GETITEMSTATE, uintptr(info.handle), win.TVIS_STATEIMAGEMASK)
+
+	// チェック状態は上位4ビットに格納されている
+	// 1 = unchecked, 2 = checked
+	checkState := (state & win.TVIS_STATEIMAGEMASK) >> 12
+
+	// 切り替え前のステータスでチェック
+	return checkState == 1
+}
+
+// SetChecked sets the check state of the specified item (for checkable TreeViews)
+func (tv *TreeView) SetChecked(item TreeItem, checked bool) error {
+	if item == nil {
+		return newError("invalid item")
+	}
+
+	info := tv.item2Info[item]
+	if info == nil {
+		return newError("invalid item")
+	}
+
+	var checkState uint32
+	if checked {
+		checkState = 2 << 12 // checked
+	} else {
+		checkState = 1 << 12 // unchecked
+	}
+
+	tvi := &win.TVITEM{
+		HItem:     info.handle,
+		Mask:      win.TVIF_STATE,
+		State:     checkState,
+		StateMask: win.TVIS_STATEIMAGEMASK,
+	}
+
+	if tv.SendMessage(win.TVM_SETITEM, 0, uintptr(unsafe.Pointer(tvi))) == 0 {
+		return newError("SendMessage(TVM_SETITEM) failed")
+	}
+
+	return nil
 }
