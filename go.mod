@@ -8,4 +8,4 @@ require (
 	gopkg.in/Knetic/govaluate.v3 v3.0.0
 )
 
-// replace github.com/miu200521358/win => ../win
+replace github.com/miu200521358/win => ../win
