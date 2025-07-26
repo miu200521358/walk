@@ -2138,7 +2138,9 @@ func (tv *TableView) lvWndProc(origWndProcPtr uintptr, hwnd win.HWND, msg uint32
 				buf := (*[264]uint16)(unsafe.Pointer(di.Item.PszText))
 				max := mini(len(utf16), int(di.Item.CchTextMax))
 				copy((*buf)[:], utf16[:max])
-				(*buf)[max-1] = 0
+				if max < len(*buf) {
+					(*buf)[max-1] = 0
+				}
 			}
 
 			if (tv.imageProvider != nil || tv.styler != nil) && di.Item.Mask&win.LVIF_IMAGE > 0 {
