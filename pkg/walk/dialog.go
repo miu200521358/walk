@@ -239,6 +239,18 @@ func (dlg *Dialog) Run() int {
 	return dlg.result
 }
 
+func (dlg *Dialog) RunWithFunc(f func(dialog *Dialog)) int {
+	dlg.Show()
+
+	if f != nil {
+		f(dlg)
+	}
+
+	dlg.FormBase.Run()
+
+	return dlg.result
+}
+
 func (dlg *Dialog) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
 	case win.WM_COMMAND:

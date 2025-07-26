@@ -187,3 +187,17 @@ func (d Dialog) Run(owner walk.Form) (int, error) {
 
 	return (*d.AssignTo).Run(), nil
 }
+
+func (d Dialog) RunWithFunc(owner walk.Form, f func(dialog *walk.Dialog)) (int, error) {
+	var w *walk.Dialog
+
+	if d.AssignTo == nil {
+		d.AssignTo = &w
+	}
+
+	if err := d.Create(owner); err != nil {
+		return 0, err
+	}
+
+	return (*d.AssignTo).RunWithFunc(f), nil
+}

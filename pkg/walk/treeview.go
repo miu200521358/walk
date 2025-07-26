@@ -206,7 +206,12 @@ func (tv *TreeView) SetModel(model TreeModel) error {
 		})
 
 		tv.itemCheckedEventHandlerHandle = model.ItemChecked().Attach(func(item TreeItem) {
-			// チェック状態変更時の処理（必要に応じてUIの更新など）
+			// モデルからのチェック状態変更をTreeViewに反映
+			if checkableItem, ok := item.(interface{ Checked() bool }); ok {
+				if err := tv.SetChecked(item, checkableItem.Checked()); err != nil {
+					return
+				}
+			}
 			tv.itemCheckedPublisher.Publish(item)
 		})
 	}
@@ -308,6 +313,45 @@ func (tv *TreeView) resetItems() error {
 	return nil
 }
 
+func (tv *TreeView) ApplyRootCheckStates() {
+	// すべてのルートアイテムから再帰的に適用
+	if tv.model != nil {
+		tv.SetSuspended(true)
+		defer tv.SetSuspended(false)
+
+		for i := 0; i < tv.model.RootCount(); i++ {
+			item := tv.model.RootAt(i)
+			if item == nil {
+				continue
+			}
+			if checkableItem, ok := item.(interface{ Checked() bool }); ok {
+				if err := tv.SetChecked(item, checkableItem.Checked()); err != nil {
+					// エラーログを出力（必要に応じて）
+				}
+			}
+		}
+	}
+}
+
+func (tv *TreeView) applyCheckStateRecursive(item TreeItem) {
+	// 現在のアイテムのチェック状態を適用
+	if checkableItem, ok := item.(interface{ Checked() bool }); ok {
+		if err := tv.SetChecked(item, checkableItem.Checked()); err != nil {
+			// エラーログを出力（必要に応じて）
+		}
+	}
+
+	// 子アイテムも再帰的に処理
+	for i := 0; i < item.ChildCount(); i++ {
+		child := item.ChildAt(i)
+
+		// 子アイテムがTreeViewに存在する場合のみ処理
+		if tv.item2Info[child] != nil {
+			tv.applyCheckStateRecursive(child)
+		}
+	}
+}
+
 func (tv *TreeView) clearItems() error {
 	if 0 == tv.SendMessage(win.TVM_DELETEITEM, 0, 0) {
 		return newError("SendMessage(TVM_DELETEITEM) failed")
@@ -387,6 +431,17 @@ func (tv *TreeView) insertItemAfter(item TreeItem, hInsertAfter win.HTREEITEM) (
 	tvi.Mask = win.TVIF_CHILDREN | win.TVIF_TEXT
 	tvi.PszText = win.LPSTR_TEXTCALLBACK
 	tvi.CChildren = win.I_CHILDRENCALLBACK
+
+	// チェック状態を設定
+	if checkableItem, ok := item.(interface{ Checked() bool }); ok {
+		tvi.Mask |= win.TVIF_STATE
+		if checkableItem.Checked() {
+			tvi.State = 2 << 12 // checked
+		} else {
+			tvi.State = 1 << 12 // unchecked
+		}
+		tvi.StateMask = win.TVIS_STATEIMAGEMASK
+	}
 
 	tv.setTVITEMImageInfo(tvi, item)
 
@@ -617,6 +672,9 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 				info := tv.item2Info[item]
 				if len(info.child2Handle) == 0 {
 					tv.insertChildren(item)
+
+					// 挿入後にチェック状態を適用
+					tv.applyCheckStateRecursive(item)
 				}
 			}
 
@@ -632,6 +690,9 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 
 			case win.TVE_EXPAND:
 				tv.expandedChangedPublisher.Publish(item)
+
+				// 展開時に子アイテムのチェック状態をモデルから反映
+				tv.applyCheckStateRecursive(item)
 
 			case win.TVE_EXPANDPARTIAL:
 
@@ -665,9 +726,22 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 			hti := win.TVHITTESTINFO{Pt: pt}
 			tv.SendMessage(win.TVM_HITTEST, 0, uintptr(unsafe.Pointer(&hti)))
 
-			// チェックボックス部分がクリックされた場合
+			// チェックボックス部分がクリックされた場合のみ処理
 			if hti.Flags&win.TVHT_ONITEMSTATEICON != 0 {
 				if item, ok := tv.handle2Item[hti.HItem]; ok {
+					// 現在のチェック状態を取得（クリック前の状態）
+					currentChecked := tv.Checked(item)
+					// 新しいチェック状態は現在の状態の反転
+					newChecked := !currentChecked
+
+					// 親アイテムのチェック状態を更新
+					if checkableItem, ok := item.(interface{ SetChecked(bool) }); ok {
+						checkableItem.SetChecked(newChecked)
+					}
+
+					// 子アイテムのチェック状態も親に合わせる（再帰的に）
+					tv.setChildrenChecked(item, newChecked)
+
 					// チェック状態変更イベントを発行
 					tv.itemCheckedPublisher.Publish(item)
 				}
@@ -676,6 +750,24 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 	}
 
 	return tv.WidgetBase.WndProc(hwnd, msg, wParam, lParam)
+}
+
+// setChildrenChecked sets the check state of all children recursively
+func (tv *TreeView) setChildrenChecked(parent TreeItem, checked bool) {
+	for i := 0; i < parent.ChildCount(); i++ {
+		child := parent.ChildAt(i)
+
+		// 子アイテムのモデルの状態を更新
+		if checkableChild, ok := child.(interface{ SetChecked(bool) }); ok {
+			checkableChild.SetChecked(checked)
+		}
+
+		// TreeViewのUI状態も更新
+		if err := tv.SetChecked(child, checked); err == nil {
+			// 孫アイテムも再帰的に処理
+			tv.setChildrenChecked(child, checked)
+		}
+	}
 }
 
 func (*TreeView) NeedsWmSize() bool {
@@ -704,8 +796,8 @@ func (tv *TreeView) Checked(item TreeItem) bool {
 	// 1 = unchecked, 2 = checked
 	checkState := (state & win.TVIS_STATEIMAGEMASK) >> 12
 
-	// 切り替え前のステータスでチェック
-	return checkState == 1
+	// 2 = checked の場合にtrueを返す
+	return checkState == 2
 }
 
 // SetChecked sets the check state of the specified item (for checkable TreeViews)
@@ -735,6 +827,12 @@ func (tv *TreeView) SetChecked(item TreeItem, checked bool) error {
 
 	if tv.SendMessage(win.TVM_SETITEM, 0, uintptr(unsafe.Pointer(tvi))) == 0 {
 		return newError("SendMessage(TVM_SETITEM) failed")
+	}
+
+	// アイテムの再描画のみを行う（展開はしない）
+	var rect win.RECT
+	if tv.SendMessage(win.TVM_GETITEMRECT, uintptr(info.handle), uintptr(unsafe.Pointer(&rect))) != 0 {
+		win.InvalidateRect(tv.hWnd, &rect, false)
 	}
 
 	return nil
