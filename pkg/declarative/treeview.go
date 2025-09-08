@@ -55,7 +55,7 @@ type TreeView struct {
 	OnCurrentItemChanged walk.EventHandler
 	OnExpandedChanged    walk.TreeItemEventHandler
 	OnItemActivated      walk.EventHandler
-	OnItemChecked        walk.TreeItemEventHandler
+	OnItemChecked        walk.TreeCheckableItemEventHandler
 	Checkable            bool
 }
 

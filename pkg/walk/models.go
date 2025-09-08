@@ -623,6 +623,27 @@ type TreeItem interface {
 	ChildAt(index int) TreeItem
 }
 
+// TreeItem represents an item in a TreeView widget.
+type TreeCheckableItem interface {
+	// Text returns the text of the item.
+	Text() string
+
+	// Parent returns the parent of the item.
+	Parent() TreeItem
+
+	// Checked returns if the item is checked.
+	Checked() bool
+
+	// SetChecked sets if the item is checked.
+	SetChecked(checked bool)
+
+	// ChildCount returns the number of children of the item.
+	ChildCount() int
+
+	// ChildAt returns the child at the specified index.
+	ChildAt(index int) TreeItem
+}
+
 // HasChilder enables widgets like TreeView to determine if an item has any
 // child, without enforcing to fully count all children.
 type HasChilder interface {
@@ -662,7 +683,7 @@ type TreeModel interface {
 
 	// ItemChecked returns the event that the model should publish when an item's
 	// checked state was changed.
-	ItemChecked() *TreeItemEvent
+	ItemChecked() *TreeCheckableItemEvent
 }
 
 // TreeModelBase partially implements the TreeModel interface.
@@ -675,7 +696,7 @@ type TreeModelBase struct {
 	itemChangedPublisher  TreeItemEventPublisher
 	itemInsertedPublisher TreeItemEventPublisher
 	itemRemovedPublisher  TreeItemEventPublisher
-	itemCheckedPublisher  TreeItemEventPublisher
+	itemCheckedPublisher  TreeCheckableItemEventPublisher
 }
 
 func (tmb *TreeModelBase) LazyPopulation() bool {
@@ -698,7 +719,7 @@ func (tmb *TreeModelBase) ItemRemoved() *TreeItemEvent {
 	return tmb.itemRemovedPublisher.Event()
 }
 
-func (tmb *TreeModelBase) ItemChecked() *TreeItemEvent {
+func (tmb *TreeModelBase) ItemChecked() *TreeCheckableItemEvent {
 	return tmb.itemCheckedPublisher.Event()
 }
 
@@ -718,6 +739,6 @@ func (tmb *TreeModelBase) PublishItemRemoved(item TreeItem) {
 	tmb.itemRemovedPublisher.Publish(item)
 }
 
-func (tmb *TreeModelBase) PublishItemChecked(item TreeItem) {
+func (tmb *TreeModelBase) PublishItemChecked(item TreeCheckableItem) {
 	tmb.itemCheckedPublisher.Publish(item)
 }

@@ -38,7 +38,7 @@ type TreeView struct {
 	expandedChangedPublisher       TreeItemEventPublisher
 	currentItemChangedPublisher    EventPublisher
 	itemActivatedPublisher         EventPublisher
-	itemCheckedPublisher           TreeItemEventPublisher
+	itemCheckedPublisher           TreeCheckableItemEventPublisher
 }
 
 func NewTreeView(parent Container, checkable bool) (*TreeView, error) {
@@ -205,7 +205,7 @@ func (tv *TreeView) SetModel(model TreeModel) error {
 			}
 		})
 
-		tv.itemCheckedEventHandlerHandle = model.ItemChecked().Attach(func(item TreeItem) {
+		tv.itemCheckedEventHandlerHandle = model.ItemChecked().Attach(func(item TreeCheckableItem) {
 			// モデルからのチェック状態変更をTreeViewに反映
 			if checkableItem, ok := item.(interface{ Checked() bool }); ok {
 				if err := tv.SetChecked(item, checkableItem.Checked()); err != nil {
@@ -625,7 +625,7 @@ func (tv *TreeView) ItemActivated() *Event {
 	return tv.itemActivatedPublisher.Event()
 }
 
-func (tv *TreeView) ItemChecked() *TreeItemEvent {
+func (tv *TreeView) ItemChecked() *TreeCheckableItemEvent {
 	return tv.itemCheckedPublisher.Event()
 }
 
@@ -743,7 +743,7 @@ func (tv *TreeView) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 					tv.setChildrenChecked(item, newChecked)
 
 					// チェック状態変更イベントを発行
-					tv.itemCheckedPublisher.Publish(item)
+					tv.itemCheckedPublisher.Publish(item.(TreeCheckableItem))
 				}
 			}
 		}
