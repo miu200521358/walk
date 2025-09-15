@@ -133,6 +133,26 @@ func NewNumberEdit(parent Container) (*NumberEdit, error) {
 	return ne, nil
 }
 
+// ChangedBackground returns the changedBackground Brush of the *WindowBase.
+//
+// By default this is nil.
+func (ne *NumberEdit) ChangedBackgroundColor() Color {
+	return ne.edit.ChangedBackgroundColor()
+}
+
+// SetChangedBackground sets the changedBackground Brush of the *WindowBase.
+func (ne *NumberEdit) SetChangedBackgroundColor(changedBackground Color) {
+	ne.edit.setChangedBackgroundColor(changedBackground)
+}
+
+func (ne *NumberEdit) DefaultBackgroundColor() Color {
+	return ne.edit.DefaultBackgroundColor()
+}
+
+func (ne *NumberEdit) SetDefaultBackgroundColor(background Color) {
+	ne.edit.setDefaultBackgroundColor(background)
+}
+
 func (ne *NumberEdit) applyEnabled(enabled bool) {
 	ne.WidgetBase.applyEnabled(enabled)
 
@@ -163,7 +183,7 @@ func (ne *NumberEdit) SetEnabled(enabled bool) {
 		}
 		ne.SetBackground(bg)
 	} else {
-		bg, err := NewSolidColorBrush(RGB(255, 255, 255))
+		bg, err := NewSolidColorBrush(ColorWhite)
 		if err != nil {
 			return
 		}
@@ -329,7 +349,23 @@ func (ne *NumberEdit) SetValue(value float64) error {
 		return newError("value out of range")
 	}
 
+	if ne.edit.value != ne.edit.defaultValue {
+		ne.edit.SetBackground(ne.edit.ChangedBackground())
+	} else {
+		ne.edit.SetBackground(ne.edit.DefaultBackground())
+	}
+
 	return ne.edit.setValue(value, true)
+}
+
+// DefaultValue returns the value of the NumberEdit.
+func (ne *NumberEdit) DefaultValue() float64 {
+	return ne.edit.defaultValue
+}
+
+// SetDefaultValue sets the value of the NumberEdit.
+func (ne *NumberEdit) SetDefaultValue(value float64) {
+	ne.edit.defaultValue = value
 }
 
 // SetValue sets the value of the NumberEdit.
@@ -338,6 +374,12 @@ func (ne *NumberEdit) ChangeValue(value float64) error {
 		(value < ne.edit.minValue || value > ne.edit.maxValue) {
 
 		return newError("value out of range")
+	}
+
+	if ne.edit.value != ne.edit.defaultValue {
+		ne.edit.SetBackground(ne.edit.ChangedBackground())
+	} else {
+		ne.edit.SetBackground(ne.edit.DefaultBackground())
 	}
 
 	return ne.edit.changeValue(value, true)
@@ -519,22 +561,27 @@ func (li *numberEditLayoutItem) MinSize() Size {
 
 type numberLineEdit struct {
 	*LineEdit
-	buf                   *bytes.Buffer
-	prefix                []uint16
-	suffix                []uint16
-	value                 float64
-	minValue              float64
-	maxValue              float64
-	increment             float64
-	decimals              int
-	valueChangedPublisher EventPublisher
-	inEditMode            bool
+	buf                    *bytes.Buffer
+	prefix                 []uint16
+	suffix                 []uint16
+	value                  float64
+	minValue               float64
+	maxValue               float64
+	defaultValue           float64
+	increment              float64
+	decimals               int
+	valueChangedPublisher  EventPublisher
+	inEditMode             bool
+	changedBackgroundColor Color
+	defaultBackgroundColor Color
 }
 
 func newNumberLineEdit(parent Widget) (*numberLineEdit, error) {
 	nle := &numberLineEdit{
-		buf:       new(bytes.Buffer),
-		increment: 1,
+		buf:                    new(bytes.Buffer),
+		increment:              1,
+		changedBackgroundColor: ColorWhite,
+		defaultBackgroundColor: ColorWhite,
 	}
 
 	var err error
@@ -583,9 +630,51 @@ func (nle *numberLineEdit) setValue(value float64, setText bool) error {
 
 	nle.value = value
 
+	if nle.value != nle.defaultValue {
+		nle.SetBackground(nle.ChangedBackground())
+	} else {
+		nle.SetBackground(nle.DefaultBackground())
+	}
+
 	nle.valueChangedPublisher.Publish()
 
 	return nil
+}
+
+// ChangedBackground returns the changedBackground Brush of the *WindowBase.
+//
+// By default this is nil.
+func (nle *numberLineEdit) ChangedBackgroundColor() Color {
+	return nle.changedBackgroundColor
+}
+
+func (nle *numberLineEdit) ChangedBackground() Brush {
+	bg, err := NewSolidColorBrush(nle.changedBackgroundColor)
+	if err != nil {
+		return nil
+	}
+	return bg
+}
+
+// SetChangedBackground sets the changedBackground Brush of the *WindowBase.
+func (nle *numberLineEdit) setChangedBackgroundColor(changedBackground Color) {
+	nle.changedBackgroundColor = changedBackground
+}
+
+func (nle *numberLineEdit) DefaultBackgroundColor() Color {
+	return nle.defaultBackgroundColor
+}
+
+func (nle *numberLineEdit) DefaultBackground() Brush {
+	bg, err := NewSolidColorBrush(nle.defaultBackgroundColor)
+	if err != nil {
+		return nil
+	}
+	return bg
+}
+
+func (nle *numberLineEdit) setDefaultBackgroundColor(background Color) {
+	nle.defaultBackgroundColor = background
 }
 
 func (nle *numberLineEdit) changeValue(value float64, setText bool) error {
@@ -600,6 +689,12 @@ func (nle *numberLineEdit) changeValue(value float64, setText bool) error {
 	}
 
 	nle.value = value
+
+	if nle.value != nle.defaultValue {
+		nle.SetBackground(nle.ChangedBackground())
+	} else {
+		nle.SetBackground(nle.DefaultBackground())
+	}
 
 	return nil
 }

@@ -49,18 +49,21 @@ type NumberEdit struct {
 
 	// NumberEdit
 
-	AssignTo           **walk.NumberEdit
-	Decimals           int
-	Increment          float64
-	MaxValue           float64
-	MinValue           float64
-	Prefix             Property
-	OnValueChanged     walk.EventHandler
-	ReadOnly           Property
-	SpinButtonsVisible bool
-	Suffix             Property
-	TextColor          walk.Color
-	Value              Property
+	AssignTo               **walk.NumberEdit
+	Decimals               int
+	Increment              float64
+	MaxValue               float64
+	MinValue               float64
+	Prefix                 Property
+	OnValueChanged         walk.EventHandler
+	ReadOnly               Property
+	SpinButtonsVisible     bool
+	Suffix                 Property
+	TextColor              walk.Color
+	Value                  Property
+	ChangedBackgroundColor walk.Color
+	DefaultBackgroundColor walk.Color
+	DefaultValue           float64
 }
 
 func (ne NumberEdit) Create(builder *Builder) error {
@@ -89,8 +92,14 @@ func (ne NumberEdit) Create(builder *Builder) error {
 			return err
 		}
 
+		w.SetDefaultValue(ne.DefaultValue)
+
 		if ne.MinValue != 0 || ne.MaxValue != 0 {
-			w.SetValue(ne.MinValue)
+			if ne.DefaultValue != 0 || ne.MinValue != ne.DefaultValue {
+				w.SetValue(ne.DefaultValue)
+			} else {
+				w.SetValue(ne.MinValue)
+			}
 			if err := w.SetRange(ne.MinValue, ne.MaxValue); err != nil {
 				return err
 			}
@@ -103,6 +112,16 @@ func (ne NumberEdit) Create(builder *Builder) error {
 		if ne.OnValueChanged != nil {
 			w.ValueChanged().Attach(ne.OnValueChanged)
 		}
+
+		if ne.DefaultBackgroundColor == 0 {
+			ne.DefaultBackgroundColor = walk.ColorWhite
+		}
+		w.SetDefaultBackgroundColor(ne.DefaultBackgroundColor)
+
+		if ne.ChangedBackgroundColor == 0 {
+			ne.ChangedBackgroundColor = walk.ColorPeachPuff
+		}
+		w.SetChangedBackgroundColor(ne.ChangedBackgroundColor)
 
 		return nil
 	})
