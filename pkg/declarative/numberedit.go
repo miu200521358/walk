@@ -119,7 +119,7 @@ func (ne NumberEdit) Create(builder *Builder) error {
 		w.SetDefaultBackgroundColor(ne.DefaultBackgroundColor)
 
 		if ne.ChangedBackgroundColor == 0 {
-			ne.ChangedBackgroundColor = walk.ColorPeachPuff
+			ne.ChangedBackgroundColor = walk.ColorMistyRose
 		}
 		w.SetChangedBackgroundColor(ne.ChangedBackgroundColor)
 
