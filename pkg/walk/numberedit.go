@@ -349,11 +349,7 @@ func (ne *NumberEdit) SetValue(value float64) error {
 		return newError("value out of range")
 	}
 
-	if ne.edit.value != ne.edit.defaultValue {
-		ne.edit.SetBackground(ne.edit.ChangedBackground())
-	} else {
-		ne.edit.SetBackground(ne.edit.DefaultBackground())
-	}
+	ne.edit.fixBackground()
 
 	return ne.edit.setValue(value, true)
 }
@@ -376,11 +372,7 @@ func (ne *NumberEdit) ChangeValue(value float64) error {
 		return newError("value out of range")
 	}
 
-	if ne.edit.value != ne.edit.defaultValue {
-		ne.edit.SetBackground(ne.edit.ChangedBackground())
-	} else {
-		ne.edit.SetBackground(ne.edit.DefaultBackground())
-	}
+	ne.edit.fixBackground()
 
 	return ne.edit.changeValue(value, true)
 }
@@ -630,11 +622,7 @@ func (nle *numberLineEdit) setValue(value float64, setText bool) error {
 
 	nle.value = value
 
-	if nle.value != nle.defaultValue {
-		nle.SetBackground(nle.ChangedBackground())
-	} else {
-		nle.SetBackground(nle.DefaultBackground())
-	}
+	nle.fixBackground()
 
 	nle.valueChangedPublisher.Publish()
 
@@ -690,13 +678,29 @@ func (nle *numberLineEdit) changeValue(value float64, setText bool) error {
 
 	nle.value = value
 
-	if nle.value != nle.defaultValue {
+	nle.fixBackground()
+
+	return nil
+}
+
+func (nle *numberLineEdit) fixBackground() {
+	if !nle.roundedEqual(nle.value, nle.defaultValue) {
 		nle.SetBackground(nle.ChangedBackground())
 	} else {
 		nle.SetBackground(nle.DefaultBackground())
 	}
+}
 
-	return nil
+func (nle *numberLineEdit) roundedEqual(a, b float64) bool {
+	// Decimals 桁で四捨五入して比較
+	if nle.decimals < 0 {
+		return a == b
+	}
+	if nle.decimals == 0 {
+		return math.Round(a) == math.Round(b)
+	}
+	p := math.Pow(10, float64(nle.decimals))
+	return math.Round(a*p) == math.Round(b*p)
 }
 
 func (nle *numberLineEdit) setTextFromValue(value float64) error {
