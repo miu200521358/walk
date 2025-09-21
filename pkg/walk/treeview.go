@@ -333,6 +333,44 @@ func (tv *TreeView) ApplyRootCheckStates() {
 	}
 }
 
+func (tv *TreeView) ExpandAll() {
+	// すべてのルートアイテムから再帰的に適用
+	if tv.model != nil {
+		tv.SetSuspended(true)
+		defer tv.SetSuspended(false)
+
+		for i := 0; i < tv.model.RootCount(); i++ {
+			item := tv.model.RootAt(i)
+			if item == nil {
+				continue
+			}
+
+			tv.expandChildren(item)
+		}
+	}
+}
+
+func (tv *TreeView) expandChildren(item TreeItem) {
+	// すべての子アイテムを展開
+	if tv.model != nil {
+		tv.SetExpanded(item, true)
+
+		for i := 0; i < item.ChildCount(); i++ {
+			child := item.ChildAt(i)
+			if child == nil {
+				continue
+			}
+			if err := tv.SetExpanded(child, true); err != nil {
+				// エラーログを出力（必要に応じて）
+			}
+			for childIndex := range child.ChildCount() {
+				grandChild := child.ChildAt(childIndex)
+				tv.expandChildren(grandChild)
+			}
+		}
+	}
+}
+
 func (tv *TreeView) applyCheckStateRecursive(item TreeItem) {
 	// 現在のアイテムのチェック状態を適用
 	if checkableItem, ok := item.(interface{ Checked() bool }); ok {
