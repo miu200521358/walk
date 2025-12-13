@@ -345,15 +345,17 @@ func (tv *TreeView) ExpandAll() {
 				continue
 			}
 
-			tv.expandChildren(item)
+			tv.SetExpanded(item, true)
+			tv.ExpandChildren(item)
 		}
 	}
 }
 
-func (tv *TreeView) expandChildren(item TreeItem) {
+func (tv *TreeView) ExpandChildren(item TreeItem) {
 	// すべての子アイテムを展開
 	if tv.model != nil {
-		tv.SetExpanded(item, true)
+		tv.SetSuspended(true)
+		defer tv.SetSuspended(false)
 
 		for i := 0; i < item.ChildCount(); i++ {
 			child := item.ChildAt(i)
@@ -365,7 +367,7 @@ func (tv *TreeView) expandChildren(item TreeItem) {
 			}
 			for childIndex := range child.ChildCount() {
 				grandChild := child.ChildAt(childIndex)
-				tv.expandChildren(grandChild)
+				tv.ExpandChildren(grandChild)
 			}
 		}
 	}
