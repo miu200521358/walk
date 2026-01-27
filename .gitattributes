@@ -1,0 +1,2 @@
+# .gitattributes（テキストファイルは常に LF を使う）
+* text=auto eol=lf
