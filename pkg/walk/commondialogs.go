@@ -10,6 +10,7 @@ package walk
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"unsafe"
 
@@ -25,6 +26,10 @@ type FileDialog struct {
 	FilterIndex    int
 	Flags          uint32
 	ShowReadOnlyCB bool
+	// BrowseRootDirPath はフォルダ選択ダイアログのルートを指定する。
+	BrowseRootDirPath string
+	// BrowseInitialSelectionPath はフォルダ選択ダイアログの初期選択パスを指定する。
+	BrowseInitialSelectionPath string
 }
 
 func (dlg *FileDialog) show(owner Form, fun func(ofn *win.OPENFILENAME) bool, flags uint32) (accepted bool, err error) {
@@ -135,9 +140,28 @@ func pathFromPIDL(pidl uintptr) (string, error) {
 	return syscall.UTF16ToString(path[:]), nil
 }
 
+// browseFolderContext はフォルダ選択ダイアログの初期化情報を保持する。
+type browseFolderContext struct {
+	initialSelection *uint16
+}
+
 // We use this callback to disable the OK button in case of "invalid" selections.
 func browseFolderCallback(hwnd win.HWND, msg uint32, lp, wp uintptr) uintptr {
-	const BFFM_SELCHANGED = 2
+	const (
+		BFFM_INITIALIZED = 1
+		BFFM_SELCHANGED  = 2
+	)
+	if msg == BFFM_INITIALIZED {
+		ctx := (*browseFolderContext)(unsafe.Pointer(wp))
+		if ctx != nil && ctx.initialSelection != nil {
+			const BFFM_SETSELECTION = win.WM_USER + 102
+			const BFFM_SETEXPANDED = win.WM_USER + 106
+			// 初期選択の展開を優先し、念のため選択だけの通知も送る。
+			win.SendMessage(hwnd, BFFM_SETEXPANDED, 1, uintptr(unsafe.Pointer(ctx.initialSelection)))
+			win.SendMessage(hwnd, BFFM_SETSELECTION, 1, uintptr(unsafe.Pointer(ctx.initialSelection)))
+		}
+		return 0
+	}
 	if msg == BFFM_SELCHANGED {
 		_, err := pathFromPIDL(lp)
 		var enabled uintptr
@@ -173,10 +197,23 @@ func (dlg *FileDialog) ShowBrowseFolder(owner Form) (accepted bool, err error) {
 		ownerHwnd = owner.Handle()
 	}
 
-	// We need to put the initial path into a buffer of at least MAX_LENGTH
-	// length, or we may get random crashes.
-	var buf [win.MAX_PATH]uint16
-	copy(buf[:], syscall.StringToUTF16(dlg.InitialDirPath))
+	rootPath := ""
+	if dlg.BrowseRootDirPath != "" {
+		rootPath = dlg.BrowseRootDirPath
+	} else if dlg.BrowseInitialSelectionPath == "" && dlg.InitialDirPath != "" {
+		// 互換性維持: 新フィールド未使用時は従来通りルート扱いにする。
+		rootPath = dlg.InitialDirPath
+	}
+
+	selectionPath := dlg.BrowseInitialSelectionPath
+	ctx := &browseFolderContext{}
+	var selectionBuf []uint16
+	if selectionPath != "" {
+		selectionBuf = syscall.StringToUTF16(selectionPath)
+		if len(selectionBuf) > 0 {
+			ctx.initialSelection = &selectionBuf[0]
+		}
+	}
 
 	const BIF_NEWDIALOGSTYLE = 0x00000040
 
@@ -185,11 +222,19 @@ func (dlg *FileDialog) ShowBrowseFolder(owner Form) (accepted bool, err error) {
 		LpszTitle: syscall.StringToUTF16Ptr(dlg.Title),
 		UlFlags:   BIF_NEWDIALOGSTYLE,
 		Lpfn:      browseFolderCallbackPtr,
+		LParam:    uintptr(unsafe.Pointer(ctx)),
 	}
 
-	win.SHParseDisplayName(&buf[0], 0, &bi.PidlRoot, 0, nil)
+	if rootPath != "" {
+		// 初期ルートは最大長のバッファを使って安全に渡す。
+		var buf [win.MAX_PATH]uint16
+		copy(buf[:], syscall.StringToUTF16(rootPath))
+		win.SHParseDisplayName(&buf[0], 0, &bi.PidlRoot, 0, nil)
+	}
 
 	pidl := win.SHBrowseForFolder(&bi)
+	runtime.KeepAlive(ctx)
+	runtime.KeepAlive(selectionBuf)
 	if pidl == 0 {
 		return false, nil
 	}
