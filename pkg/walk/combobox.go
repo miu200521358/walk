@@ -43,6 +43,14 @@ type ComboBox struct {
 	editOrigWndProcPtr           uintptr
 	editing                      bool
 	persistent                   bool
+
+	// appliedLayoutBounds is the geometry layout last handed to the window, in
+	// native pixels. The control adjusts its own height, so the bounds it
+	// reports back cannot tell whether layout still has work to do.
+	appliedLayoutBounds Rectangle
+	// appliedDropDownListHeight is the drop-down list height last folded into
+	// the window height, in native pixels.
+	appliedDropDownListHeight int
 }
 
 var comboBoxEditWndProcPtr uintptr
@@ -721,6 +729,46 @@ func (cb *ComboBox) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 
 func (*ComboBox) NeedsWmSize() bool {
 	return true
+}
+
+// comboBoxMaxVisibleItems is the maximum number of items shown at once in the
+// drop-down list. Additional items are reachable by scrolling.
+const comboBoxMaxVisibleItems = 16
+
+// dropDownListHeight returns the height in native pixels that the drop-down
+// list needs.
+//
+// A Win32 combo box takes the height it is given as the height of its
+// drop-down list, and shrinks itself back to the height of the selection field
+// while the list is closed. Layout only decides the height of the selection
+// field, so that height has to be added when the window is actually sized;
+// otherwise the list has no room and never appears.
+func (cb *ComboBox) dropDownListHeight() int {
+	count := 0
+	if cb.model != nil {
+		count = cb.model.ItemCount()
+	}
+	if count < 1 {
+		count = 1
+	}
+	if count > comboBoxMaxVisibleItems {
+		count = comboBoxMaxVisibleItems
+	}
+
+	itemHeight := int(int32(cb.SendMessage(win.CB_GETITEMHEIGHT, 0, 0)))
+	if itemHeight <= 0 {
+		itemHeight = cb.dialogBaseUnitsToPixels(Size{0, 8}).Height
+	}
+	if itemHeight <= 0 {
+		return 0
+	}
+
+	// Without CBS_NOINTEGRALHEIGHT the list takes an integral height: it rounds
+	// down to whole items. The list border eats a few pixels, which would round
+	// the last row away, so almost one more item is added as slack. Being short
+	// of a full item, it can never make room for an extra row, and a list with
+	// fewer items than the space allows still shrinks to its item count.
+	return itemHeight*count + itemHeight - 1
 }
 
 func (cb *ComboBox) CreateLayoutItem(ctx *LayoutContext) LayoutItem {

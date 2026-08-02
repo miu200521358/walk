@@ -339,18 +339,23 @@ func applyLayoutResults(results []LayoutResult, stopwatch *stopwatch) error {
 
 				oldBounds := widget.BoundsPixels()
 
-				if ri.Bounds == oldBounds {
-					continue
-				}
+				// A Win32 combo box takes the height it is given as the height of its
+				// drop-down list and then adjusts its own window height, so what it
+				// reports back never matches what layout asked for. Compare against
+				// the geometry last handed to it instead; comparing against the
+				// reported bounds would reposition it on every pass and layout would
+				// never settle.
+				dropDownListHeight := 0
+				comboBox, isComboBox := widget.(*ComboBox)
+				if isComboBox {
+					dropDownListHeight = comboBox.dropDownListHeight()
 
-				if ri.Bounds.X == oldBounds.X && ri.Bounds.Y == oldBounds.Y && ri.Bounds.Width == oldBounds.Width {
-					if _, ok := widget.(*ComboBox); ok {
-						if ri.Bounds.Height == oldBounds.Height+1 {
-							continue
-						}
-					} else if ri.Bounds.Height == oldBounds.Height {
+					if ri.Bounds == comboBox.appliedLayoutBounds &&
+						dropDownListHeight == comboBox.appliedDropDownListHeight {
 						continue
 					}
+				} else if ri.Bounds == oldBounds {
+					continue
 				}
 
 				if maybeInvalidate {
@@ -366,10 +371,15 @@ func applyLayoutResults(results []LayoutResult, stopwatch *stopwatch) error {
 					int32(ri.Bounds.X),
 					int32(ri.Bounds.Y),
 					int32(ri.Bounds.Width),
-					int32(ri.Bounds.Height),
+					int32(ri.Bounds.Height+dropDownListHeight),
 					win.SWP_NOACTIVATE|win.SWP_NOOWNERZORDER|win.SWP_NOZORDER); hdwp == 0 {
 
 					return lastError("DeferWindowPos")
+				}
+
+				if isComboBox {
+					comboBox.appliedLayoutBounds = ri.Bounds
+					comboBox.appliedDropDownListHeight = dropDownListHeight
 				}
 
 				if widget.GraphicsEffects().Len() == 0 {
